@@ -52,7 +52,7 @@ public function run(): void {
     $importer = new Importer();
     $result = $importer->handle_request();
 
-    $view_path = ARTOPIA_GALLERY_PLUGIN_PATH . 'admin/views/importer-page.php';
+    $view_path = ARTOPIA_GALLERY_PLUGIN_PATH . 'admin/views/import-page.php';
 
     if (file_exists($view_path)) {
       include $view_path;

@@ -105,40 +105,51 @@ class Importer {
     return $result;
   }
 
-  private function parse_csv_file(string $tmp_path): array {
+  private function parse_csv_file(string $tmp_path): array
+{
     $result = [
-      'columns' => [],
-      'rows' => [],
-      'errors' => [],
+        'columns' => [],
+        'rows' => [],
+        'errors' => [],
     ];
 
     $handle = fopen($tmp_path, 'r');
 
     if ($handle === false) {
-      fclose($handle);
-      $result['errors'][] = __('Could not open unloaded CSV file.', 'artopia-gallery');
-      return $result;
+        $result['errors'][] = __('Could not open uploaded CSV file.', 'artopia-gallery');
+        return $result;
     }
 
-    $columns = array_map(function ($column) {
-      $column = is_string($column) ? trim($column) : '';
-      return strtolower($column);
-    }, $$handle);
+    $header = fgetcsv($handle);
+
+    if (!is_array($header) || empty($header)) {
+        fclose($handle);
+        $result['errors'][] = __('CSV appears to be empty or missing a header row.', 'artopia-gallery');
+        return $result;
+    }
+
+    $columns = array_map(
+        function ($column) {
+            $column = is_string($column) ? trim($column) : '';
+            return strtolower($column);
+        },
+        $header
+    );
 
     $result['columns'] = $columns;
 
     while (($row = fgetcsv($handle)) !== false) {
-      if ($this->row_is_empty($row)) {
-        continue;
-      }
+        if (!is_array($row) || $this->row_is_empty($row)) {
+            continue;
+        }
 
-      $assoc = [];
+        $assoc = [];
 
-      foreach ($columns as $index => $column_name) {
-        $assoc[$column_name] = isset($row[$index]) ? trim((string) $row[$index]) : '';
-      }
+        foreach ($columns as $index => $column_name) {
+            $assoc[$column_name] = isset($row[$index]) ? trim((string) $row[$index]) : '';
+        }
 
-      $result['rows'][] = $assoc;
+        $result['rows'][] = $assoc;
     }
 
     fclose($handle);

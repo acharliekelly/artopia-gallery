@@ -23,6 +23,8 @@ require_once ARTOPIA_GALLERY_PLUGIN_PATH . 'includes/class-taxonomies.php';
 require_once ARTOPIA_GALLERY_PLUGIN_PATH . 'includes/class-meta-boxes.php';
 require_once ARTOPIA_GALLERY_PLUGIN_PATH . 'includes/class-meta.php';
 require_once ARTOPIA_GALLERY_PLUGIN_PATH . 'includes/class-helpers.php';
+require_once ARTOPIA_GALLERY_PLUGIN_PATH . 'includes/class-admin.php';
+require_once ARTOPIA_GALLERY_PLUGIN_PATH . 'includes/class-importer.php';
 
 register_activation_hook(ARTOPIA_GALLERY_PLUGIN_FILE, ['Artopia_Gallery\\Plugin', 'activate']);
 register_deactivation_hook(ARTOPIA_GALLERY_PLUGIN_FILE, ['Artopia_Gallery\\Plugin', 'deactivate']);

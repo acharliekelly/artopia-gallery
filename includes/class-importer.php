@@ -52,9 +52,12 @@ class Importer
             'import_summary' => [
                 'created' => 0,
                 'skipped' => 0,
+                'matched_images' => 0,
+                'missing_images' => 0,
                 'gallery_term_id' => 0,
                 'created_ids' => [],
                 'skipped_rows' => [],
+                'image_messages' => [],
             ],
         ];
 
@@ -267,7 +270,7 @@ class Importer
         $allowed_statuses = array_keys(Helpers::artwork_statuses());
 
         foreach ($result['rows'] as $index => $row) {
-            $row_number = $index + 2; // header row is line 1
+            $row_number = $index + 2;
 
             $filename = isset($row['filename']) ? trim((string) $row['filename']) : '';
             $title = isset($row['title']) ? trim((string) $row['title']) : '';
@@ -378,6 +381,32 @@ class Importer
 
             wp_set_object_terms($post_id, [$gallery_term_id], 'gallery');
 
+            $attachment_id = $this->find_attachment_by_filename($filename);
+
+            if ($attachment_id > 0) {
+                set_post_thumbnail($post_id, $attachment_id);
+
+                wp_update_post([
+                    'ID' => $attachment_id,
+                    'post_parent' => $post_id,
+                ]);
+
+                $result['import_summary']['matched_images']++;
+                $result['import_summary']['image_messages'][] = sprintf(
+                    __('Row %1$d: matched image "%2$s" to attachment ID %3$d.', 'artopia-gallery'),
+                    $index + 2,
+                    $filename,
+                    $attachment_id
+                );
+            } else {
+                $result['import_summary']['missing_images']++;
+                $result['import_summary']['image_messages'][] = sprintf(
+                    __('Row %1$d: no Media Library image found for "%2$s".', 'artopia-gallery'),
+                    $index + 2,
+                    $filename
+                );
+            }
+
             $result['import_summary']['created']++;
             $result['import_summary']['created_ids'][] = $post_id;
         }
@@ -413,6 +442,72 @@ class Importer
         ]);
 
         return $query->have_posts();
+    }
+
+    private function find_attachment_by_filename(string $filename): int
+    {
+        $filename = sanitize_file_name($filename);
+
+        if ($filename === '') {
+            return 0;
+        }
+
+        $candidates = $this->build_attachment_filename_candidates($filename);
+        $pathinfo = pathinfo($filename);
+        $basename = isset($pathinfo['filename']) ? $pathinfo['filename'] : '';
+        if ($basename === '') {
+            return 0;
+        }
+
+        $query = new \WP_Query([
+            'post_type' => 'attachment',
+            'post_status' => 'inherit',
+            'post_mime_type' => 'image',
+            'posts_per_page' => -1,
+            'fields' => 'ids',
+            'meta_query' => [
+                    [
+                        'key' => '_wp_attached_file',
+                        'value' => $basename,
+                        'compare' => 'LIKE',
+                    ],
+                ],
+        ]);
+
+        if (empty($query->posts)) {
+            return 0;
+        }
+
+        // Prefer exact original finename match first, then scaled fallback.
+        foreach ($candidates as $candidate) {
+            foreach ($query->posts as $attachment_id) {
+                $attached_file = get_post_meta((int) $attachment_id, '_wp_attached_file', true);
+
+                if (!is_string($attached_file) || $attached_file === '') {
+                    continue;
+                }
+
+                if (wp_basename($attached_file) || $candidate) {
+                    return (int) $attachment_id;
+                }
+            }
+            
+        }
+        
+        return 0;
+    }
+
+    private function build_attachment_filename_candidates(string $filename): array {
+        $candidates = [$filename];
+        $pathinfo = pathinfo($filename);
+        $basename = isset($pathinfo['filename']) ? $pathinfo['filename'] : '';
+        $extension = isset($pathinfo['extension']) ? $pathinfo['extension'] : '';
+
+        if ($basename !== '' && $extension !== '') {
+            $candidates[] = $basename . '-scaled.' . $extension;
+        }
+
+        return array_values(array_unique($candidates));
     }
 
     private function normalize_column_name(string $column_name): string

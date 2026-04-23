@@ -167,6 +167,14 @@ $preview_rows = array_slice($result['rows'], 0, 10);
                         <td><?php echo esc_html((string) $result['import_summary']['skipped']); ?></td>
                     </tr>
                     <tr>
+                        <th><?php esc_html_e('Matched Images', 'artopia-gallery'); ?></th>
+                        <td><?php echo esc_html((string) $result['import_summary']['matched_images']); ?></td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('Missing Images', 'artopia-gallery'); ?></th>
+                        <td><?php echo esc_html((string) $result['import_summary']['missing_images']); ?></td>
+                    </tr>
+                    <tr>
                         <th><?php esc_html_e('Gallery Term ID', 'artopia-gallery'); ?></th>
                         <td><?php echo esc_html((string) $result['import_summary']['gallery_term_id']); ?></td>
                     </tr>
@@ -176,6 +184,15 @@ $preview_rows = array_slice($result['rows'], 0, 10);
             <?php if (!empty($result['import_summary']['created_ids'])) : ?>
                 <h4><?php esc_html_e('Created Artwork IDs', 'artopia-gallery'); ?></h4>
                 <p><?php echo esc_html(implode(', ', $result['import_summary']['created_ids'])); ?></p>
+            <?php endif; ?>
+
+            <?php if (!empty($result['import_summary']['image_messages'])) : ?>
+                <h4><?php esc_html_e('Image Matching', 'artopia-gallery'); ?></h4>
+                <ul>
+                    <?php foreach ($result['import_summary']['image_messages'] as $image_message) : ?>
+                        <li><?php echo esc_html($image_message); ?></li>
+                    <?php endforeach; ?>
+                </ul>
             <?php endif; ?>
 
             <?php if (!empty($result['import_summary']['skipped_rows'])) : ?>

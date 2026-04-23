@@ -103,8 +103,23 @@ $preview_rows = array_slice($result['rows'], 0, 10);
             </div>
         <?php endif; ?>
 
+        <?php if (!empty($result['warnings'])) : ?>
+            <div class="notice notice-warning">
+                <ul>
+                    <?php foreach ($result['warnings'] as $warning) : ?>
+                        <li><?php echo esc_html($warning); ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        <?php endif; ?>
+
+        <?php if (!empty($result['original_columns'])) : ?>
+            <h3><?php esc_html_e('Original Columns', 'artopia-gallery'); ?></h3>
+            <p><?php echo esc_html(implode(', ', $result['original_columns'])); ?></p>
+        <?php endif; ?>
+
         <?php if (!empty($result['columns'])) : ?>
-            <h3><?php esc_html_e('Detected Columns', 'artopia-gallery'); ?></h3>
+            <h3><?php esc_html_e('Normalized Columns', 'artopia-gallery'); ?></h3>
             <p><?php echo esc_html(implode(', ', $result['columns'])); ?></p>
         <?php endif; ?>
 

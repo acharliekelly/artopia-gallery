@@ -5,8 +5,9 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  // Move lightbox to <body> so theme/layout containers cannot constrain it.
   document.body.appendChild(lightbox);
+
+  const cards = Array.from(document.querySelectorAll('.artopia-gallery-card'));
 
   const image = lightbox.querySelector('.artopia-gallery-lightbox-image');
   const title = lightbox.querySelector('.artopia-gallery-lightbox-title');
@@ -16,10 +17,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const price = lightbox.querySelector('.artopia-gallery-lightbox-price');
   const status = lightbox.querySelector('.artopia-gallery-lightbox-status');
   const description = lightbox.querySelector('.artopia-gallery-lightbox-description');
+  const counter = lightbox.querySelector('.artopia-gallery-lightbox-counter');
   const closeButton = lightbox.querySelector('.artopia-gallery-lightbox-close');
+  const prevButton = lightbox.querySelector('.artopia-gallery-lightbox-prev');
+  const nextButton = lightbox.querySelector('.artopia-gallery-lightbox-next');
   const backdrop = lightbox.querySelector('.artopia-gallery-lightbox-backdrop');
 
-  const openLightbox = (card) => {
+  let currentIndex = -1;
+
+  const renderCard = (card, index) => {
     const fullImage = card.dataset.fullImage || '';
     const titleText = card.dataset.title || '';
 
@@ -40,7 +46,27 @@ document.addEventListener('DOMContentLoaded', () => {
     price.textContent = card.dataset.price ? `Price: $${card.dataset.price}` : '';
     status.textContent = card.dataset.status ? `Status: ${card.dataset.status}` : '';
     description.textContent = card.dataset.description || '';
+    counter.textContent = `${index + 1} / ${cards.length}`;
 
+    currentIndex = index;
+
+    if (prevButton) {
+      prevButton.disabled = cards.length <= 1;
+    }
+
+    if (nextButton) {
+      nextButton.disabled = cards.length <= 1;
+    }
+  };
+
+  const openLightbox = (index) => {
+    const card = cards[index];
+
+    if (!card) {
+      return;
+    }
+
+    renderCard(card, index);
     lightbox.hidden = false;
     document.body.style.overflow = 'hidden';
   };
@@ -51,22 +77,51 @@ document.addEventListener('DOMContentLoaded', () => {
     image.alt = '';
     image.style.display = '';
     document.body.style.overflow = '';
+    currentIndex = -1;
   };
 
-  document.querySelectorAll('.artopia-gallery-card').forEach((card) => {
+  const goToPrevious = () => {
+    if (cards.length === 0 || currentIndex < 0) {
+      return;
+    }
+
+    const newIndex = (currentIndex - 1 + cards.length) % cards.length;
+    renderCard(cards[newIndex], newIndex);
+  };
+
+  const goToNext = () => {
+    if (cards.length === 0 || currentIndex < 0) {
+      return;
+    }
+
+    const newIndex = (currentIndex + 1) % cards.length;
+    renderCard(cards[newIndex], newIndex);
+  };
+
+  cards.forEach((card, index) => {
     const button = card.querySelector('.artopia-gallery-card-button');
 
     if (button) {
-      button.addEventListener('click', () => openLightbox(card));
+      button.addEventListener('click', () => openLightbox(index));
     }
   });
 
   closeButton?.addEventListener('click', closeLightbox);
   backdrop?.addEventListener('click', closeLightbox);
+  prevButton?.addEventListener('click', goToPrevious);
+  nextButton?.addEventListener('click', goToNext);
 
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && !lightbox.hidden) {
+    if (lightbox.hidden) {
+      return;
+    }
+
+    if (event.key === 'Escape') {
       closeLightbox();
+    } else if (event.key === 'ArrowLeft') {
+      goToPrevious();
+    } else if (event.key === 'ArrowRight') {
+      goToNext();
     }
   });
 });

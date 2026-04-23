@@ -175,16 +175,31 @@ class Shortcodes {
 
     <div class="artopia-gallery-lightbox" hidden>
       <div class="artopia-gallery-lightbox-backdrop"></div>
+
       <div class="artopia-gallery-lightbox-dialog" role="dialog" aria-modal="true" aria-label="<?php esc_attr_e('Artwork details', 'artopia-gallery'); ?>">
+        
+        <!-- CLOSE BUTTON -->
         <button type="button" class="artopia-gallery-lightbox-close" aria-label="<?php esc_attr_e('Close', 'artopia-gallery'); ?>">
           x
         </button>
+
+        <!-- PREV BUTTON -->
+        <button type="button" class="artopia-gallery-lightbox-nav artopia-gallery-lightbox-prev" aria-label="<?php esc_attr_e('Next image', 'artopia-gallery'); ?>">
+          &lt;
+        </button>
+
+        <!-- NEXT BUTTON -->
+        <button type="button" class="artopia-gallery-lightbox-nav artopia-gallery-lightbox-next" aria-label="<?php esc_attr_e('Next image', 'artopia-gallery'); ?>">
+          &gt;
+        </button>
+
 
         <div class="artopia-gallery-lightbox-content">
           <div class="artopia-gallery-lightbox-image-wrap">
             <img src="" alt="" class="artopia-gallery-lightbox-image" />
           </div>
           <div class="artopia-gallery-lightbox-details">
+            <div class="artopia-gallery-lightbox-counter"></div>
             <h3 class="artopia-gallery-lightbox-title"></h3>
             <p class="artopia-gallery-lightbox-medium"></p>
             <p class="artopia-gallery-lightbox-year"></p>

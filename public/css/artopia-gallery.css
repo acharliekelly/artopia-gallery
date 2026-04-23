@@ -185,6 +185,52 @@ body {
   line-height: 1.5;
 }
 
+.artopia-gallery-lightbox-counter {
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: #777;
+  letter-spacing: 0.04rem;
+}
+
+/* LIGHTBOX NAV */
+.artopia-gallery-lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  border: 0;
+  background: rgba(255, 255, 255, 0.92);
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px;
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.artopia-gallery-lightbox-nav:hover {
+  background-color: #fff;
+}
+
+.artopia-gallery-lightbox-nav:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.artopia-gallery-lightbox-prev {
+  left: 1rem;
+}
+
+.artopia-gallery-lightbox-next {
+  right: calc(360px + 1rem);
+}
+
+
+/* MOBILE */
 @media (max-width: 900px) {
   .artopia-gallery-lightbox {
     padding: 0;
@@ -211,5 +257,17 @@ body {
 
   .artopia-gallery-lightbox-title {
     font-size: 1.6rem;
+  }
+
+  .artopia-gallery-lightbox-prev {
+    left: 0.75rem;
+  }
+
+  .artopia-gallery-lightbox-next {
+    right: 0.75rem;
+  }
+
+  .artopia-gallery-lightbox-nav {
+    top: 22vh;
   }
 }

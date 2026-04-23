@@ -7,6 +7,7 @@ if (!defined('ABSPATH')) {
 }
 
 class Meta_Boxes {
+
   public function run(): void {
     add_action( 'add_meta_boxes', [$this, 'register_artwork_meta_box']);
     add_action( 'save_post', [$this, 'save_artwork_details']);
@@ -26,6 +27,7 @@ class Meta_Boxes {
   public function render_artwork_details_meta_box(\WP_Post $post): void {
     wp_nonce_field('artopia_save_artwork_details', 'artopia_artwork_details_nonce');
 
+    $artist_id  = (int) get_post_meta($post->ID, '_artopia_artist_id', true);
     $medium     = get_post_meta( $post->ID, '_artopia_medium', true );
     $year       = get_post_meta( $post->ID, '_artopia_year', true );
     $dimensions = get_post_meta( $post->ID, '_artopia_dimensions', true );
@@ -35,102 +37,64 @@ class Meta_Boxes {
     if (empty($status)) {
       $status = 'available';
     }
-    ?>
-    <table class="form-table" role="presentation">
-            <tbody>
-                <tr>
-                    <th scope="row">
-                        <label for="artopia_medium"><?php esc_html_e('Medium', 'artopia-gallery'); ?></label>
-                    </th>
-                    <td>
-                        <input
-                            type="text"
-                            id="artopia_medium"
-                            name="artopia_medium"
-                            value="<?php echo esc_attr($medium); ?>"
-                            class="regular-text"
-                        />
-                    </td>
-                </tr>
 
-                <tr>
-                    <th scope="row">
-                        <label for="artopia_year"><?php esc_html_e('Year', 'artopia-gallery'); ?></label>
-                    </th>
-                    <td>
-                        <input
-                            type="number"
-                            id="artopia_year"
-                            name="artopia_year"
-                            value="<?php echo esc_attr($year); ?>"
-                            class="small-text"
-                            min="0"
-                            max="9999"
-                            step="1"
-                        />
-                    </td>
-                </tr>
+    $artists = get_posts([
+        'post_type'         => 'artist',
+        'post_status'       => ['publish', 'draft', 'pending', 'private'],
+        'posts_per_page'    => -1,
+        'orderby'           => 'title',
+        'order'             => 'ASC',
+    ]);
 
-                <tr>
-                    <th scope="row">
-                        <label for="artopia_dimensions"><?php esc_html_e('Dimensions', 'artopia-gallery'); ?></label>
-                    </th>
-                    <td>
-                        <input
-                            type="text"
-                            id="artopia_dimensions"
-                            name="artopia_dimensions"
-                            value="<?php echo esc_attr($dimensions); ?>"
-                            class="regular-text"
-                            placeholder="e.g. 24 x 36 in"
-                        />
-                    </td>
-                </tr>
+    echo '<p>';
+    echo '<label for="artopia_artist_id"><strong>' . esc_html__('Artist', 'artopia-gallery') . '</strong></label><br>';
+    echo '<select id="artopia_artist_id" name="artopia_artist_id">';
+    echo '<option value="0">' . esc_html__('Select an artist', 'artopia-gallery') . '</option>';
 
-                <tr>
-                    <th scope="row">
-                        <label for="artopia_price"><?php esc_html_e('Price', 'artopia-gallery'); ?></label>
-                    </th>
-                    <td>
-                        <input
-                            type="text"
-                            id="artopia_price"
-                            name="artopia_price"
-                            value="<?php echo esc_attr($price); ?>"
-                            class="regular-text"
-                            placeholder="e.g. 1200.00"
-                        />
-                    </td>
-                </tr>
+    foreach ($artists as $artist) {
+        echo '<option value="' . esc_attr((string) $artist->ID) . '"' . selected($artist_id, $artist->ID, false) . '>';
+        echo esc_html($artist->post_title ?: sprintf(__('Artist #%d', 'artopia-gallery'), $artist->ID));
+        echo '</option>';
+    }
 
-                <tr>
-                    <th scope="row">
-                        <label for="artopia_status"><?php esc_html_e('Status', 'artopia-gallery'); ?></label>
-                    </th>
-                    <td>
-                        <select id="artopia_status" name="artopia_status">
-                            <option value="available" <?php selected($status, 'available'); ?>>
-                                <?php esc_html_e('Available', 'artopia-gallery'); ?>
-                            </option>
-                            <option value="sold" <?php selected($status, 'sold'); ?>>
-                                <?php esc_html_e('Sold', 'artopia-gallery'); ?>
-                            </option>
-                            <option value="inquiry" <?php selected($status, 'inquiry'); ?>>
-                                <?php esc_html_e('Inquiry', 'artopia-gallery'); ?>
-                            </option>
-                            <option value="print_available" <?php selected($status, 'print_available'); ?>>
-                                <?php esc_html_e('Print Available', 'artopia-gallery'); ?>
-                            </option>
-                        </select>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    <?php
-  }
+    echo '</select>';
+    echo '</p>';
 
-  public function save_artwork_details(int $post_id): void
-{
+    echo '<p>';
+        echo '<label for="artopia_medium"><strong>' . esc_html__('Medium', 'artopia-gallery') . '</strong></label><br>';
+        echo '<input type="text" id="artopia_medium" name="artopia_medium" value="' . esc_attr($medium) . '" class="regular-text">';
+        echo '</p>';
+
+        echo '<p>';
+        echo '<label for="artopia_year"><strong>' . esc_html__('Year', 'artopia-gallery') . '</strong></label><br>';
+        echo '<input type="number" id="artopia_year" name="artopia_year" value="' . esc_attr($year) . '" class="small-text" min="0" max="9999" step="1">';
+        echo '</p>';
+
+        echo '<p>';
+        echo '<label for="artopia_dimensions"><strong>' . esc_html__('Dimensions', 'artopia-gallery') . '</strong></label><br>';
+        echo '<input type="text" id="artopia_dimensions" name="artopia_dimensions" value="' . esc_attr($dimensions) . '" class="regular-text" placeholder="e.g. 24 x 36 in">';
+        echo '</p>';
+
+        echo '<p>';
+        echo '<label for="artopia_price"><strong>' . esc_html__('Price', 'artopia-gallery') . '</strong></label><br>';
+        echo '<input type="text" id="artopia_price" name="artopia_price" value="' . esc_attr($price) . '" class="regular-text" placeholder="e.g. 1200.00">';
+        echo '</p>';
+
+        echo '<p>';
+        echo '<label for="artopia_status"><strong>' . esc_html__('Status', 'artopia-gallery') . '</strong></label><br>';
+        echo '<select id="artopia_status" name="artopia_status">';
+
+        foreach (Helpers::artwork_statuses() as $value => $label) {
+            echo '<option value="' . esc_attr($value) . '"' . selected($status, $value, false) . '>';
+            echo esc_html($label);
+            echo '</option>';
+        }
+
+        echo '</select>';
+        echo '</p>';
+    }
+
+  public function save_artwork_details(int $post_id): void {
     if (!isset($_POST['artopia_artwork_details_nonce'])) {
         return;
     }
@@ -153,6 +117,23 @@ class Meta_Boxes {
         return;
     }
 
+    $artist_id = isset($_POST['artopia_artist_id'])
+        ? absint(wp_unslash($_POST['artopia_artist_id']))
+        : 0;
+
+    if ($artist_id > 0) {
+        $artist = get_post($artist_id);
+
+        if ($artist && $artist->post_type === 'artist') {
+            update_post_meta($post_id, '_artopia_artist_id', $artist_id);
+        } else {
+            update_post_meta($post_id, '_artopia_artist_id', 0);
+        }
+    } else {
+        update_post_meta($post_id, '_artopia_artist_id', 0);
+    }
+
+
     $medium = isset($_POST['artopia_medium'])
         ? sanitize_text_field(wp_unslash($_POST['artopia_medium']))
         : '';
@@ -169,15 +150,8 @@ class Meta_Boxes {
         ? sanitize_text_field(wp_unslash($_POST['artopia_price']))
         : '';
 
-    $allowed_statuses = ['available', 'sold', 'inquiry', 'print_available'];
 
-    $status = isset($_POST['artopia_status'])
-        ? sanitize_text_field(wp_unslash($_POST['artopia_status']))
-        : 'available';
-
-    if (!in_array($status, $allowed_statuses, true)) {
-        $status = 'available';
-    }
+    $status = Helpers::normalize_artwork_status(wp_unslash($_POST['artopia_status']));
 
     update_post_meta($post_id, '_artopia_medium', $medium);
     update_post_meta($post_id, '_artopia_year', $year);

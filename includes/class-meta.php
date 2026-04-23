@@ -21,6 +21,15 @@ class Meta {
       'auth_callback' => [$this, 'can_edit_post_meta'],
     ]);
 
+    register_post_meta('artwork', '_artopia_filename', [
+      'type' => 'string',
+      'single' => true,
+      'default' => '',
+      'sanitize_callback' => 'sanitize_text_field',
+      'show_in_rest' => true,
+      'auth_callback' => [$this, 'can_edit_post_meta'],
+    ]);
+
     register_post_meta('artwork', '_artopia_medium', [
         'type' => 'string',
         'single' => true,
@@ -100,6 +109,7 @@ class Meta {
   public function sanitize_price($value): string {
     $value = is_string($value) ? $value : (string) $value;
     $value = trim($value);
+    /** @disregard undefined function preg_replace */
     $value = preg_replace('/[^0-9.]/', '', $value);
 
     return is_string($value) ? $value : '';

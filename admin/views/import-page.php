@@ -22,7 +22,7 @@ $preview_rows = array_slice($result['rows'], 0, 10);
     <h1><?php esc_html_e('Import Artwork CSV', 'artopia-gallery'); ?></h1>
 
     <p>
-        <?php esc_html_e('This first version only validates and previews a CSV. It does not create artwork yet.', 'artopia-gallery'); ?>
+        <?php esc_html_e('Validate a CSV first, then import it into Artwork posts.', 'artopia-gallery'); ?>
     </p>
 
     <form method="post" enctype="multipart/form-data">
@@ -68,14 +68,21 @@ $preview_rows = array_slice($result['rows'], 0, 10);
                     <td>
                         <input type="file" name="artopia_csv_file" id="artopia_csv_file" accept=".csv,text/csv" />
                         <p class="description">
-                            <?php esc_html_e('Required columns for now: filename, title', 'artopia-gallery'); ?>
+                            <?php esc_html_e('Required columns: filename, title', 'artopia-gallery'); ?>
                         </p>
                     </td>
                 </tr>
             </tbody>
         </table>
 
-        <?php submit_button(__('Validate CSV', 'artopia-gallery')); ?>
+        <p class="submit">
+            <button type="submit" name="artopia_import_action" value="validate" class="button button-secondary">
+                <?php esc_html_e('Validate CSV', 'artopia-gallery'); ?>
+            </button>
+            <button type="submit" name="artopia_import_action" value="import" class="button button-primary">
+                <?php esc_html_e('Import CSV', 'artopia-gallery'); ?>
+            </button>
+        </p>
     </form>
 
     <?php if ($result['submitted']) : ?>
@@ -144,6 +151,41 @@ $preview_rows = array_slice($result['rows'], 0, 10);
                     <?php endforeach; ?>
                 </tbody>
             </table>
+        <?php endif; ?>
+
+        <?php if ($result['did_import']) : ?>
+            <h3><?php esc_html_e('Import Summary', 'artopia-gallery'); ?></h3>
+
+            <table class="widefat striped">
+                <tbody>
+                    <tr>
+                        <th><?php esc_html_e('Created', 'artopia-gallery'); ?></th>
+                        <td><?php echo esc_html((string) $result['import_summary']['created']); ?></td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('Skipped', 'artopia-gallery'); ?></th>
+                        <td><?php echo esc_html((string) $result['import_summary']['skipped']); ?></td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('Gallery Term ID', 'artopia-gallery'); ?></th>
+                        <td><?php echo esc_html((string) $result['import_summary']['gallery_term_id']); ?></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <?php if (!empty($result['import_summary']['created_ids'])) : ?>
+                <h4><?php esc_html_e('Created Artwork IDs', 'artopia-gallery'); ?></h4>
+                <p><?php echo esc_html(implode(', ', $result['import_summary']['created_ids'])); ?></p>
+            <?php endif; ?>
+
+            <?php if (!empty($result['import_summary']['skipped_rows'])) : ?>
+                <h4><?php esc_html_e('Skipped Rows', 'artopia-gallery'); ?></h4>
+                <ul>
+                    <?php foreach ($result['import_summary']['skipped_rows'] as $skipped) : ?>
+                        <li><?php echo esc_html($skipped); ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
         <?php endif; ?>
     <?php endif; ?>
 </div>

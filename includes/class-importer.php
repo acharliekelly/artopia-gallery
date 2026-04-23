@@ -39,6 +39,7 @@ class Importer
     {
         $result = [
             'submitted' => false,
+            'did_import' => false,
             'artist_id' => 0,
             'gallery_name' => '',
             'messages' => [],
@@ -48,8 +49,16 @@ class Importer
             'original_columns' => [],
             'rows' => [],
             'row_count' => 0,
+            'import_summary' => [
+                'created' => 0,
+                'skipped' => 0,
+                'gallery_term_id' => 0,
+                'created_ids' => [],
+                'skipped_rows' => [],
+            ],
         ];
 
+        /** @disregard undefined variable $_SERVER */
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             return $result;
         }
@@ -76,12 +85,22 @@ class Importer
             ? sanitize_text_field(wp_unslash($_POST['artopia_gallery_name']))
             : '';
 
-        if ($result['artist_id'] > 0) {
+        $action = isset($_POST['artopia_import_action'])
+            ? sanitize_text_field(wp_unslash($_POST['artopia_import_action']))
+            : 'validate';
+
+        if ($result['artist_id'] <= 0) {
+            $result['errors'][] = __('Please select an artist.', 'artopia-gallery');
+        } else {
             $artist = get_post($result['artist_id']);
 
             if (!$artist || $artist->post_type !== 'artist') {
                 $result['errors'][] = __('Selected artist is invalid.', 'artopia-gallery');
             }
+        }
+
+        if ($result['gallery_name'] === '') {
+            $result['errors'][] = __('Please enter a gallery name.', 'artopia-gallery');
         }
 
         if (
@@ -156,6 +175,12 @@ class Importer
                 __('Parsed %d data row(s).', 'artopia-gallery'),
                 $result['row_count']
             );
+        }
+
+        $this->validate_rows($result);
+
+        if ($action === 'import' && empty($result['errors'])) {
+            $this->import_rows($result);
         }
 
         return $result;
@@ -237,6 +262,159 @@ class Importer
         return $result;
     }
 
+    private function validate_rows(array &$result): void
+    {
+        $allowed_statuses = array_keys(Helpers::artwork_statuses());
+
+        foreach ($result['rows'] as $index => $row) {
+            $row_number = $index + 2; // header row is line 1
+
+            $filename = isset($row['filename']) ? trim((string) $row['filename']) : '';
+            $title = isset($row['title']) ? trim((string) $row['title']) : '';
+            $status = isset($row['status']) ? trim((string) $row['status']) : '';
+            $year = isset($row['year']) ? trim((string) $row['year']) : '';
+
+            if ($filename === '') {
+                $result['errors'][] = sprintf(
+                    __('Row %d: filename is required.', 'artopia-gallery'),
+                    $row_number
+                );
+            }
+
+            if ($title === '') {
+                $result['errors'][] = sprintf(
+                    __('Row %d: title is required.', 'artopia-gallery'),
+                    $row_number
+                );
+            }
+
+            if ($status !== '' && !in_array($status, $allowed_statuses, true)) {
+                $result['warnings'][] = sprintf(
+                    __('Row %d: status "%s" is unknown and will default to "available".', 'artopia-gallery'),
+                    $row_number,
+                    $status
+                );
+            }
+
+            /** @disregard undefined function ctype_digit */
+            if ($year !== '' && !ctype_digit($year)) {
+                $result['warnings'][] = sprintf(
+                    __('Row %d: year "%s" is not a plain integer and may be sanitized.', 'artopia-gallery'),
+                    $row_number,
+                    $year
+                );
+            }
+        }
+    }
+
+    private function import_rows(array &$result): void
+    {
+        $gallery = term_exists($result['gallery_name'], 'gallery');
+
+        if ($gallery === 0 || $gallery === null) {
+            $gallery = wp_insert_term($result['gallery_name'], 'gallery');
+        }
+
+        if (is_wp_error($gallery)) {
+            $result['errors'][] = sprintf(
+                __('Could not create or find gallery term: %s', 'artopia-gallery'),
+                $gallery->get_error_message()
+            );
+            return;
+        }
+
+        $gallery_term_id = is_array($gallery) ? (int) $gallery['term_id'] : (int) $gallery;
+        $result['import_summary']['gallery_term_id'] = $gallery_term_id;
+
+        foreach ($result['rows'] as $index => $row) {
+            $filename = isset($row['filename']) ? trim((string) $row['filename']) : '';
+            $title = isset($row['title']) ? trim((string) $row['title']) : '';
+
+            if ($filename === '' || $title === '') {
+                $result['import_summary']['skipped']++;
+                $result['import_summary']['skipped_rows'][] = sprintf(
+                    __('Row %d skipped due to missing required values.', 'artopia-gallery'),
+                    $index + 2
+                );
+                continue;
+            }
+
+            if ($this->artwork_exists($result['artist_id'], $filename)) {
+                $result['import_summary']['skipped']++;
+                $result['import_summary']['skipped_rows'][] = sprintf(
+                    __('Row %1$d skipped because filename "%2$s" already exists for this artist.', 'artopia-gallery'),
+                    $index + 2,
+                    $filename
+                );
+                continue;
+            }
+
+            $post_id = wp_insert_post([
+                'post_type' => 'artwork',
+                'post_status' => 'publish',
+                'post_title' => $title,
+                'post_content' => isset($row['description']) ? wp_kses_post($row['description']) : '',
+            ], true);
+
+            if (is_wp_error($post_id)) {
+                $result['import_summary']['skipped']++;
+                $result['import_summary']['skipped_rows'][] = sprintf(
+                    __('Row %1$d failed to import: %2$s', 'artopia-gallery'),
+                    $index + 2,
+                    $post_id->get_error_message()
+                );
+                continue;
+            }
+
+            update_post_meta($post_id, '_artopia_artist_id', $result['artist_id']);
+            update_post_meta($post_id, '_artopia_filename', $filename);
+            update_post_meta($post_id, '_artopia_medium', isset($row['medium']) ? sanitize_text_field($row['medium']) : '');
+            update_post_meta($post_id, '_artopia_year', isset($row['year']) ? absint($row['year']) : 0);
+            update_post_meta($post_id, '_artopia_dimensions', isset($row['dimensions']) ? sanitize_text_field($row['dimensions']) : '');
+            update_post_meta($post_id, '_artopia_price', isset($row['price']) ? sanitize_text_field($row['price']) : '');
+
+            $status = isset($row['status']) ? (string) $row['status'] : '';
+            update_post_meta($post_id, '_artopia_status', Helpers::normalize_artwork_status($status));
+
+            wp_set_object_terms($post_id, [$gallery_term_id], 'gallery');
+
+            $result['import_summary']['created']++;
+            $result['import_summary']['created_ids'][] = $post_id;
+        }
+
+        $result['did_import'] = true;
+        $result['messages'][] = sprintf(
+            __('Import complete. Created %1$d artwork(s), skipped %2$d.', 'artopia-gallery'),
+            $result['import_summary']['created'],
+            $result['import_summary']['skipped']
+        );
+    }
+
+    private function artwork_exists(int $artist_id, string $filename): bool
+    {
+        $query = new \WP_Query([
+            'post_type' => 'artwork',
+            'post_status' => 'any',
+            'posts_per_page' => 1,
+            'fields' => 'ids',
+            'meta_query' => [
+                'relation' => 'AND',
+                [
+                    'key' => '_artopia_artist_id',
+                    'value' => $artist_id,
+                    'compare' => '=',
+                ],
+                [
+                    'key' => '_artopia_filename',
+                    'value' => $filename,
+                    'compare' => '=',
+                ],
+            ],
+        ]);
+
+        return $query->have_posts();
+    }
+
     private function normalize_column_name(string $column_name): string
     {
         $normalized = strtolower(trim($column_name));
@@ -251,7 +429,10 @@ class Importer
 
     private function find_unknown_columns(array $columns): array
     {
-        $known_columns = array_merge($this->required_columns, $this->optional_columns);
+        $known_columns = array_merge(
+            $this->required_columns,
+            $this->optional_columns
+        );
 
         return array_values(array_filter($columns, function ($column) use ($known_columns) {
             return !in_array($column, $known_columns, true);

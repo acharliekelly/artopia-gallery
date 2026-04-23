@@ -5,6 +5,9 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
+  // Move lightbox to <body> so theme/layout containers cannot constrain it.
+  document.body.appendChild(lightbox);
+
   const image = lightbox.querySelector('.artopia-gallery-lightbox-image');
   const title = lightbox.querySelector('.artopia-gallery-lightbox-title');
   const medium = lightbox.querySelector('.artopia-gallery-lightbox-medium');
@@ -34,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     medium.textContent = card.dataset.medium ? `Medium: ${card.dataset.medium}` : '';
     year.textContent = card.dataset.year ? `Year: ${card.dataset.year}` : '';
     dimensions.textContent = card.dataset.dimensions ? `Dimensions: ${card.dataset.dimensions}` : '';
-    price.textContent = card.dataset.price ? `Price: ${card.dataset.price}` : '';
+    price.textContent = card.dataset.price ? `Price: $${card.dataset.price}` : '';
     status.textContent = card.dataset.status ? `Status: ${card.dataset.status}` : '';
     description.textContent = card.dataset.description || '';
 

@@ -1,157 +1,215 @@
+body {
+  background-color: #faf9f7;
+}
+
+.artopia-gallery-lightbox-dialog,
+.artopia-gallery-lightbox-content,
+.artopia-gallery-lightbox-image-wrap,
+.artopia-gallery-lightbox-details {
+  min-width: 0;
+}
+
 .artopia-gallery-wrapper {
-  margin: 2rem 0;
+  max-width: 1400px;
+  margin: 4rem auto;
+  padding: 0 1.5rem;
 }
 
 .artopia-gallery-title {
-  margin-bottom: 1rem;
+  font-size: clamp(2rem, 4vw, 3.8rem);
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  margin: 0 0 2rem;
+  line-height: 1.05;
 }
 
 .artopia-gallery-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minimax(220px, 1fr));
-  gap: 1rem;
-}
-
-.artopia-gallery-card {
-  margin: 0;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 2rem;
 }
 
 .artopia-gallery-card-button {
-  display: block;
   width: 100%;
   padding: 0;
-  border: 1px solid #ddd;
-  background: #fff;
+  border: 0;
+  background: transparent;
   text-align: left;
   cursor: pointer;
-  overflow: hidden;
-  border-radius: 12px;
-}
-
-.artopia-gallery-card-button:hover,
-.artopia-gallery-card-button:focus {
-  border-color: #999;
 }
 
 .artopia-gallery-card-media {
-  aspect-ratio: 4 / 3;
-  background: #f5f5f5;
   overflow: hidden;
+  background: #f4f4f4;
+  aspect-ratio: 4 / 3;
 }
 
-.artopia-gallery-image,
-.artopia-gallery-lightbox-image {
+.artopia-gallery-image {
   width: 100%;
   height: 100%;
-  display: block;
   object-fit: cover;
+  display: block;
+  transition: transform 0.7s ease, opacity 0.4s ease;
 }
 
-.artopia-gallery-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: #666;
-  font-size: 0.95rem;
+.artopia-gallery-card-button:hover .artopia-gallery-image,
+.artopia-gallery-card-button:focus .artopia-gallery-image {
+  transform: scale(1.03);
 }
 
 .artopia-gallery-card-body {
-  padding: 0.9rem;
+  padding-top: 0.9rem;
 }
 
 .artopia-gallery-card-title {
-  margin: 0 0 0.5rem;
-  font-size: 1rem;
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
 
 .artopia-gallery-card-meta {
-  color: #444;
-  font-size: 0.92rem;
-  line-height: 1.45;
+  margin-top: 0.45rem;
+  color: #666;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
 .artopia-gallery-card-status {
-  margin-top: 0.25rem;
-  font-weight: 600;
+  margin-top: 0.3rem;
+  color: #111;
+  font-weight: 500;
 }
 
-.artopia-gallery-empty {
-  padding: 1rem;
-  border: 1px solid #ddd;
-  background: #fafafa;
-}
-
-.artopia-gallery-lightbox[hidden] {
-  display: none;
-}
-
+/* LIGHTBOX */
 .artopia-gallery-lightbox {
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+.artopia-gallery-lightbox[hidden] {
+  display: none !important;
 }
 
 .artopia-gallery-lightbox-backdrop {
-  position: absolute;
+  position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(10, 10, 10, 0.88);
+  backdrop-filter: blur(4px);
 }
 
 .artopia-gallery-lightbox-dialog {
   position: relative;
   z-index: 2;
-  max-width: 1100px;
-  margin: 4vh auto;
+  width: min(96vw, 1500px);
+  height: min(92vh, 1000px);
+  max-width: 1500px;
   background: #fff;
-  border-radius: 14px;
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.28);
   overflow: hidden;
-  width: min(95vw, 1100px);
 }
 
 .artopia-gallery-lightbox-close {
   position: absolute;
-  top: 0.5rem;
-  right: 0.75rem;
-  z-index: 3;
+  top: 0.75rem;
+  right: 1rem;
+  z-index: 5;
   border: 0;
-  background: transparent;
-  font-size: 2rem;
+  background: rgba(255, 255, 255, 0.92);
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  font-size: 1.75rem;
   line-height: 1;
   cursor: pointer;
+  color: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.artopia-gallery-lightbox-close:hover {
+  background: #fff;
 }
 
 .artopia-gallery-lightbox-content {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
-  gap: 0;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  width: 100%;
+  height: 100%;
 }
 
 .artopia-gallery-lightbox-image-wrap {
   background: #111;
-  min-height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  padding: 1.5rem;
+  overflow: hidden;
 }
 
 .artopia-gallery-lightbox-image {
+  display: block;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
-  background: #111;
 }
 
 .artopia-gallery-lightbox-details {
-  padding: 1.25rem;
+  padding: 4rem 2rem 2rem;
+  overflow-y: auto;
+  background: #fff;
 }
 
 .artopia-gallery-lightbox-title {
-  margin-top: 0;
+  margin: 0 0 1rem;
+  font-size: 2rem;
+  line-height: 1.1;
+  font-weight: 400;
+  letter-spacing: -0.02em;
 }
 
-@media (max-width: 768px) {
+.artopia-gallery-lightbox-details p {
+  margin: 0 0 0.8rem;
+  color: #444;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .artopia-gallery-lightbox {
+    padding: 0;
+  }
+
   .artopia-gallery-lightbox-dialog {
-    margin: 2vh auto;
-    width: 96vw;
+    width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
   }
 
   .artopia-gallery-lightbox-content {
     grid-template-columns: 1fr;
+  }
+
+  .artopia-gallery-lightbox-image-wrap {
+    min-height: 45vh;
+    padding: 1rem;
+  }
+
+  .artopia-gallery-lightbox-details {
+    padding: 4rem 1.25rem 1.5rem;
+  }
+
+  .artopia-gallery-lightbox-title {
+    font-size: 1.6rem;
   }
 }

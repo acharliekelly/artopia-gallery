@@ -123,6 +123,7 @@ class Shortcodes {
 
             if ($thumbnail_id) {
               $lightbox_url = 
+                  wp_get_original_image_url($thumbnail_id) ?:
                   wp_get_attachment_image_url($thumbnail_id, 'full') ?:
                   wp_get_attachment_image_url($thumbnail_id, 'large') ?:
                   wp_get_attachment_image_url($thumbnail_id, 'medium_large') ?:
@@ -159,7 +160,7 @@ class Shortcodes {
                     <div><?php echo esc_html((string) $year) ?></div>
                   <?php endif; ?>
                   <?php if ($price !== '') : ?>
-                    <div><?php echo esc_html($price); ?></div>
+                    <div>$<?php echo esc_html($price); ?></div>
                   <?php endif; ?>
                   <div class="artopia-gallery-card-status">
                     <?php echo esc_html($status_label); ?>

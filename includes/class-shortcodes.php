@@ -247,7 +247,7 @@ class Shortcodes {
         </button>
 
         <!-- PREV BUTTON -->
-        <button type="button" class="artopia-gallery-lightbox-nav artopia-gallery-lightbox-prev" aria-label="<?php esc_attr_e('Next image', 'artopia-gallery'); ?>">
+        <button type="button" class="artopia-gallery-lightbox-nav artopia-gallery-lightbox-prev" aria-label="<?php esc_attr_e('Previous image', 'artopia-gallery'); ?>">
           &lt;
         </button>
 
@@ -263,13 +263,35 @@ class Shortcodes {
           </div>
           <div class="artopia-gallery-lightbox-details">
             <div class="artopia-gallery-lightbox-counter"></div>
-            <h3 class="artopia-gallery-lightbox-title"></h3>
-            <p class="artopia-gallery-lightbox-medium"></p>
-            <p class="artopia-gallery-lightbox-year"></p>
-            <p class="artopia-gallery-lightbox-dimensions"></p>
-            <p class="artopia-gallery-lightbox-price"></p>
-            <p class="artopia-gallery-lightbox-status"></p>
-            <p class="artopia-gallery-lightbox-description"></p>
+
+            <header class="artopia-gallery-lightbox-summary">
+              <h3 class="artopia-gallery-lightbox-title"></h3>
+              <div class="artopia-gallery-lightbox-status"></div>
+            </header>
+
+            <dl class="artopia-gallery-lightbox-meta">
+              <div class="artopia-gallery-lightbox-meta-row">
+                <dt>Medium</dt>
+                <dd class="artopia-gallery-lightbox-medium"></dd>
+              </div>
+              <div class="artopia-gallery-lightbox-meta-row">
+                <dt>Year</dt>
+                <dd class="artopia-gallery-lightbox-year"></dd>
+              </div>
+              <div class="artopia-gallery-lightbox-meta-row">
+                <dt>Dimensions</dt>
+                <dd class="artopia-gallery-lightbox-dimensions"></dd>
+              </div>
+              <div class="artopia-gallery-lightbox-meta-row">
+                <dt>Price</dt>
+                <dd class="artopia-gallery-lightbox-price"></dd>
+              </div>
+            </dl>
+
+            <div class="artopia-gallery-lightbox-description-wrap">
+              <h4>About this piece</h4>
+              <p class="artopia-gallery-lightbox-description"></p>
+            </div>
           </div>
         </div>
       </div>

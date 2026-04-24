@@ -229,6 +229,71 @@ body {
   letter-spacing: 0.04rem;
 }
 
+.artopia-gallery-lightbox-summary {
+  margin-bottom: 1.4rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.artopia-gallery-lightbox-status {
+  display: inline-flex;
+  margin-top: 0.75rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: #f2eee8;
+  color: #3a2416;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.artopia-gallery-lightbox-meta {
+  margin: 0;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.artopia-gallery-lightbox-meta-row {
+  display: grid;
+  grid-template-columns: 6.5rem 1fr;
+  gap: 1rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.artopia-gallery-lightbox-meta dt {
+  color: #777;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.artopia-gallery-lightbox-meta dd {
+  margin: 0;
+  color: #222;
+  line-height: 1.45;
+}
+
+.artopia-gallery-lightbox-description-wrap {
+  margin-top: 1.75rem;
+}
+
+.artopia-gallery-lightbox-description-wrap h4 {
+  margin: 0 0 0.75rem;
+  font-size: 0.8rem;
+  color: #777;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.artopia-gallery-lightbox-description {
+  color: #333;
+  font-size: 0.98rem;
+  line-height: 1.65;
+}
+
 /* LIGHTBOX NAV */
 .artopia-gallery-lightbox-nav {
   position: absolute;

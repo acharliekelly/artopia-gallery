@@ -86,20 +86,83 @@ class Shortcodes {
     wp_enqueue_script('artopia-gallery-public');
 
     $gallery_title = '';
+    $gallery_description = '';
+    $gallery_term = null;
+
     if ($gallery_slug !== '') {
       $term = get_term_by('slug', $gallery_slug, 'gallery');
+
       if ($term && !is_wp_error($term)) {
+        $gallery_term = $term;
         $gallery_title = $term->name;
+        $gallery_description = term_description((int) $term->term_id, 'gallery');
       }
     }
+
+    $artist_name = '';
+    if ($artist_id > 0) {
+      $artist = get_post($artist_id);
+
+      if ($artist && $artist->post_type === 'artist') {
+        $artist_name = get_the_title($artist);
+      }
+    }
+
+    if ($artist_name === '' && !empty($artworks)) {
+      $first_artist_id = (int) get_post_meta((int) $artworks[0]->ID, '_artopia_artist_id', true);
+
+      if ($first_artist_id > 0) {
+        $artist = get_post($first_artist_id);
+
+        if ($artist && $artist->post_type === 'artist') {
+          $artist_name = get_the_title($artist);
+        }
+      }
+    }
+
+    $artwork_count = count($artworks);
 
     ob_start();
   ?>
     <div class="artopia-gallery-wrapper">
-      <?php if ($gallery_title !== '') : ?>
-        <h2 class="artopia-gallery-title"><?php echo esc_html($gallery_title); ?></h2>
-      <?php endif; ?>
+      <header class="artopia-gallery-header">
+        <div class="artopia-gallery-eyebrow">
+          <?php esc_html_e('Artopia Gallery', 'artopia-gallery'); ?>
+        </div>
 
+        <?php if ($gallery_title !== '') : ?>
+          <h2 class="artopia-gallery-title"><?php echo esc_html($gallery_title); ?></h2>
+        <?php endif; ?>
+
+        <?php if ($artist_name !== '') : ?>
+          <div class="artopia-gallery-artist">
+            <?php echo esc_html($artist_name); ?>
+          </div>
+        <?php endif; ?>
+
+        <?php if ($gallery_description !== '') : ?>
+          <div class="artopia-gallery-description">
+            <?php echo wp_kses_post($gallery_description); ?>
+          </div>
+        <?php endif; ?>
+
+        <div class="artopia-gallery-count">
+          <?php
+            printf(
+              esc_html(
+                _n(
+                  '%d work',
+                  '%d works',
+                  $artwork_count,
+                  'artopia-gallery'
+                )
+              ),
+              (int) $artwork_count
+            );
+          ?>
+        </div>
+      </header>
+      
       <div class="artopia-gallery-grid">
         <?php foreach ($artworks as $artwork) : ?>
           <?php

@@ -478,7 +478,7 @@ class Importer
             return 0;
         }
 
-        // Prefer exact original finename match first, then scaled fallback.
+        // Prefer an exact original filename match first, then the scaled fallback.
         foreach ($candidates as $candidate) {
             foreach ($query->posts as $attachment_id) {
                 $attached_file = get_post_meta((int) $attachment_id, '_wp_attached_file', true);
@@ -487,13 +487,12 @@ class Importer
                     continue;
                 }
 
-                if (wp_basename($attached_file) || $candidate) {
+                if (wp_basename($attached_file) === $candidate) {
                     return (int) $attachment_id;
                 }
             }
-            
         }
-        
+
         return 0;
     }
 

@@ -117,46 +117,45 @@ class Meta_Boxes {
         return;
     }
 
-    $artist_id = isset($_POST['artopia_artist_id'])
-        ? absint(wp_unslash($_POST['artopia_artist_id']))
-        : 0;
+    $raw_data = [
+        'artist_id' => isset($_POST['artopia_artist_id'])
+            ? wp_unslash($_POST['artopia_artist_id'])
+            : 0,
+        'medium' => isset($_POST['artopia_medium'])
+            ? wp_unslash($_POST['artopia_medium'])
+            : '',
+        'year' => isset($_POST['artopia_year'])
+            ? wp_unslash($_POST['artopia_year'])
+            : '',
+        'dimensions' => isset($_POST['artopia_dimensions'])
+            ? wp_unslash($_POST['artopia_dimensions'])
+            : '',
+        'price' => isset($_POST['artopia_price'])
+            ? wp_unslash($_POST['artopia_price'])
+            : '',
+        'status' => isset($_POST['artopia_status'])
+            ? wp_unslash($_POST['artopia_status'])
+            : '',
+    ];
 
-    if ($artist_id > 0) {
-        $artist = get_post($artist_id);
+    $data = Artwork_Data::normalize($raw_data);
+
+    $artist_id = 0;
+
+    if ($data['artist_id'] > 0) {
+        $artist = get_post($data['artist_id']);
 
         if ($artist && $artist->post_type === 'artist') {
-            update_post_meta($post_id, '_artopia_artist_id', $artist_id);
-        } else {
-            update_post_meta($post_id, '_artopia_artist_id', 0);
+            $artist_id = $data['artist_id'];
         }
-    } else {
-        update_post_meta($post_id, '_artopia_artist_id', 0);
     }
 
-
-    $medium = isset($_POST['artopia_medium'])
-        ? sanitize_text_field(wp_unslash($_POST['artopia_medium']))
-        : '';
-
-    $year = isset($_POST['artopia_year'])
-        ? absint(wp_unslash($_POST['artopia_year']))
-        : '';
-
-    $dimensions = isset($_POST['artopia_dimensions'])
-        ? sanitize_text_field(wp_unslash($_POST['artopia_dimensions']))
-        : '';
-
-    $price = isset($_POST['artopia_price'])
-        ? sanitize_text_field(wp_unslash($_POST['artopia_price']))
-        : '';
-
-
-    $status = Helpers::normalize_artwork_status(wp_unslash($_POST['artopia_status']));
-
-    update_post_meta($post_id, '_artopia_medium', $medium);
-    update_post_meta($post_id, '_artopia_year', $year);
-    update_post_meta($post_id, '_artopia_dimensions', $dimensions);
-    update_post_meta($post_id, '_artopia_price', $price);
-    update_post_meta($post_id, '_artopia_status', $status);
+    update_post_meta($post_id, '_artopia_artist_id', $artist_id);
+    update_post_meta($post_id, '_artopia_medium', $data['medium']);
+    update_post_meta($post_id, '_artopia_year', $data['year']);
+    update_post_meta($post_id, '_artopia_dimensions', $data['dimensions']);
+    update_post_meta($post_id, '_artopia_price', $data['price']);
+    update_post_meta($post_id, '_artopia_status', $data['status']);
   }
+
 }

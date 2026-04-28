@@ -12,10 +12,13 @@ class Meta {
   }
 
   private function register_artwork_meta(): void {
+    // core artwork meta
+    $defaults = Artwork_Data::defaults();
+
     register_post_meta('artwork', '_artopia_artist_id', [
       'type' => 'integer',
-      'single' => 'true',
-      'default' => 0,
+      'single' => true,
+      'default' => $defaults['artist_id'],
       'sanitize_callback' => [$this, 'sanitize_artist_id'],
       'show_in_rest' => true,
       'auth_callback' => [$this, 'can_edit_post_meta'],
@@ -24,56 +27,65 @@ class Meta {
     register_post_meta('artwork', '_artopia_filename', [
       'type' => 'string',
       'single' => true,
-      'default' => '',
-      'sanitize_callback' => 'sanitize_text_field',
+      'default' => $defaults['filename'],
+      'sanitize_callback' => [Artwork_Data::class, 'normalize_filename'],
       'show_in_rest' => true,
       'auth_callback' => [$this, 'can_edit_post_meta'],
     ]);
 
     register_post_meta('artwork', '_artopia_medium', [
-        'type' => 'string',
-        'single' => true,
-        'default' => '',
-        'sanitize_callback' => 'sanitize_text_field',
-        'show_in_rest' => true,
-        'auth_callback' => [$this, 'can_edit_post_meta'],
+      'type' => 'string',
+      'single' => true,
+      'default' => $defaults['medium'],
+      'sanitize_callback' => [Artwork_Data::class, 'normalize_medium'],
+      'show_in_rest' => true,
+      'auth_callback' => [$this, 'can_edit_post_meta'],
     ]);
 
     register_post_meta('artwork', '_artopia_year', [
-          'type' => 'integer',
-          'single' => true,
-          'default' => 0,
-          'sanitize_callback' => [$this, 'sanitize_year'],
-          'show_in_rest' => true,
-          'auth_callback' => [$this, 'can_edit_post_meta'],
-      ]);
+      'type' => 'integer',
+      'single' => true,
+      'default' => $defaults['year'],
+      'sanitize_callback' => [Artwork_Data::class, 'normalize_year'],
+      'show_in_rest' => true,
+      'auth_callback' => [$this, 'can_edit_post_meta'],
+    ]);
 
-      register_post_meta('artwork', '_artopia_dimensions', [
-          'type' => 'string',
-          'single' => true,
-          'default' => '',
-          'sanitize_callback' => 'sanitize_text_field',
-          'show_in_rest' => true,
-          'auth_callback' => [$this, 'can_edit_post_meta'],
-      ]);
+    register_post_meta('artwork', '_artopia_dimensions', [
+      'type' => 'string',
+      'single' => true,
+      'default' => $defaults['dimensions'],
+      'sanitize_callback' => [Artwork_Data::class, 'normalize_dimensions'],
+      'show_in_rest' => true,
+      'auth_callback' => [$this, 'can_edit_post_meta'],
+    ]);
 
-      register_post_meta('artwork', '_artopia_price', [
-          'type' => 'string',
-          'single' => true,
-          'default' => '',
-          'sanitize_callback' => [$this, 'sanitize_price'],
-          'show_in_rest' => true,
-          'auth_callback' => [$this, 'can_edit_post_meta'],
-      ]);
+    register_post_meta('artwork', '_artopia_price', [
+      'type' => 'string',
+      'single' => true,
+      'default' => $defaults['price'],
+      'sanitize_callback' => [Artwork_Data::class, 'normalize_price'],
+      'show_in_rest' => true,
+      'auth_callback' => [$this, 'can_edit_post_meta'],
+    ]);
 
-      register_post_meta('artwork', '_artopia_status', [
-          'type' => 'string',
-          'single' => true,
-          'default' => 'available',
-          'sanitize_callback' => [$this, 'sanitize_status'],
-          'show_in_rest' => true,
-          'auth_callback' => [$this, 'can_edit_post_meta'],
-      ]);
+    register_post_meta('artwork', '_artopia_status', [
+      'type' => 'string',
+      'single' => true,
+      'default' => $defaults['status'],
+      'sanitize_callback' => [Artwork_Data::class, 'normalize_status'],
+      'show_in_rest' => true,
+      'auth_callback' => [$this, 'can_edit_post_meta'],
+    ]);
+
+    register_post_meta('artwork', '_artopia_import_key', [
+      'type' => 'string',
+      'single' => true,
+      'default' => '',
+      'sanitize_callback' => 'sanitize_text_field',
+      'show_in_rest' => true,
+      'auth_callback' => [$this, 'can_edit_post_meta'],
+    ]);
   }
 
   public function can_edit_post_meta(): bool {
@@ -81,8 +93,8 @@ class Meta {
   }
 
   public function sanitize_artist_id($value): int {
-    $artist_id = absint($value);
-    
+    $artist_id = Artwork_Data::normalize_artist_id($value);
+
     if (!$artist_id) {
       return 0;
     }
@@ -94,29 +106,5 @@ class Meta {
     }
 
     return $artist_id;
-  }
-
-  public function sanitize_year($value): int {
-    $year = absint($value);
-
-    if ($year > 9999) {
-      return 9999;
-    }
-
-    return $year;
-  }
-
-  public function sanitize_price($value): string {
-    $value = is_string($value) ? $value : (string) $value;
-    $value = trim($value);
-    /** @disregard undefined function preg_replace */
-    $value = preg_replace('/[^0-9.]/', '', $value);
-
-    return is_string($value) ? $value : '';
-  }
-
-  public function sanitize_status($value): string {
-    $status = Helpers::normalize_artwork_status($value);
-    return $status;
   }
 }

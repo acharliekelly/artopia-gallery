@@ -17,6 +17,7 @@ define('ARTOPIA_GALLERY_PLUGIN_FILE', __FILE__);
 define('ARTOPIA_GALLERY_PLUGIN_PATH', plugin_dir_path(__FILE__));
 define('ARTOPIA_GALLERY_PLUGIN_URL', plugin_dir_url(__FILE__));
 
+require_once ARTOPIA_GALLERY_PLUGIN_PATH . 'includes/class-artwork-data.php';
 require_once ARTOPIA_GALLERY_PLUGIN_PATH . 'includes/class-helpers.php';
 require_once ARTOPIA_GALLERY_PLUGIN_PATH . 'includes/class-plugin.php';
 require_once ARTOPIA_GALLERY_PLUGIN_PATH . 'includes/class-post-types.php';

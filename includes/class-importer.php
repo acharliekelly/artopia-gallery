@@ -267,48 +267,60 @@ class Importer
 
     private function validate_rows(array &$result): void
     {
+        // Note: parsed rows are normalized at row-processing time, not at CSV-parse time
         $allowed_statuses = array_keys(Helpers::artwork_statuses());
+        $artist_id = (int) $result['artist_id'];
 
         foreach ($result['rows'] as $index => $row) {
             $row_number = $index + 2;
+            $data = $this->normalize_import_row($row, $artist_id);
 
-            $filename = isset($row['filename']) ? trim((string) $row['filename']) : '';
-            $title = isset($row['title']) ? trim((string) $row['title']) : '';
-            $status = isset($row['status']) ? trim((string) $row['status']) : '';
-            $year = isset($row['year']) ? trim((string) $row['year']) : '';
+            $raw_status = isset($row['status']) ? trim((string) $row['status']) : '';
+            $raw_year = isset($row['year']) ? trim((string) $row['year']) : '';
 
-            if ($filename === '') {
+            if ($data['filename'] === '') {
                 $result['errors'][] = sprintf(
                     __('Row %d: filename is required.', 'artopia-gallery'),
                     $row_number
                 );
             }
 
-            if ($title === '') {
+            if ($data['title'] === '') {
                 $result['errors'][] = sprintf(
                     __('Row %d: title is required.', 'artopia-gallery'),
                     $row_number
                 );
             }
 
-            if ($status !== '' && !in_array($status, $allowed_statuses, true)) {
+            if ($raw_status !== '' && !in_array($raw_status, $allowed_statuses, true)) {
                 $result['warnings'][] = sprintf(
                     __('Row %d: status "%s" is unknown and will default to "available".', 'artopia-gallery'),
                     $row_number,
-                    $status
+                    $raw_status
                 );
             }
 
-            /** @disregard undefined function ctype_digit */
-            if ($year !== '' && !ctype_digit($year)) {
+            /** @disregard unknown function ctype_digit */
+            if ($raw_year !== '' && !ctype_digit($raw_year)) {
                 $result['warnings'][] = sprintf(
                     __('Row %d: year "%s" is not a plain integer and may be sanitized.', 'artopia-gallery'),
                     $row_number,
-                    $year
+                    $raw_year
                 );
             }
         }
     }
+
+    private function create_artwork_post(array $data)
+    {
+        return wp_insert_post([
+            'post_type' => 'artwork',
+            'post_status' => 'publish',
+            'post_title' => $data['title'],
+            'post_content' => $data['description'],
+        ], true);
+    }
+
 
     private function import_rows(array &$result): void
     {
@@ -329,59 +341,54 @@ class Importer
         $gallery_term_id = is_array($gallery) ? (int) $gallery['term_id'] : (int) $gallery;
         $result['import_summary']['gallery_term_id'] = $gallery_term_id;
 
-        foreach ($result['rows'] as $index => $row) {
-            $filename = isset($row['filename']) ? trim((string) $row['filename']) : '';
-            $title = isset($row['title']) ? trim((string) $row['title']) : '';
+        $artist_id = (int) $result['artist_id'];
 
-            if ($filename === '' || $title === '') {
+        foreach ($result['rows'] as $index => $row) {
+            $row_number = $index + 2;
+            $data = $this->normalize_import_row($row, $artist_id);
+
+            if ($data['filename'] === '' || $data['title'] === '') {
                 $result['import_summary']['skipped']++;
                 $result['import_summary']['skipped_rows'][] = sprintf(
                     __('Row %d skipped due to missing required values.', 'artopia-gallery'),
-                    $index + 2
+                    $row_number
                 );
                 continue;
             }
 
-            if ($this->artwork_exists($result['artist_id'], $filename)) {
+            if ($this->artwork_exists($artist_id, $data['filename'])) {
                 $result['import_summary']['skipped']++;
                 $result['import_summary']['skipped_rows'][] = sprintf(
                     __('Row %1$d skipped because filename "%2$s" already exists for this artist.', 'artopia-gallery'),
-                    $index + 2,
-                    $filename
+                    $row_number,
+                    $data['filename']
                 );
                 continue;
             }
 
-            $post_id = wp_insert_post([
-                'post_type' => 'artwork',
-                'post_status' => 'publish',
-                'post_title' => $title,
-                'post_content' => isset($row['description']) ? wp_kses_post($row['description']) : '',
-            ], true);
+            $post_id = $this->create_artwork_post($data);
 
             if (is_wp_error($post_id)) {
                 $result['import_summary']['skipped']++;
                 $result['import_summary']['skipped_rows'][] = sprintf(
                     __('Row %1$d failed to import: %2$s', 'artopia-gallery'),
-                    $index + 2,
+                    $row_number,
                     $post_id->get_error_message()
                 );
                 continue;
             }
 
-            update_post_meta($post_id, '_artopia_artist_id', $result['artist_id']);
-            update_post_meta($post_id, '_artopia_filename', $filename);
-            update_post_meta($post_id, '_artopia_medium', isset($row['medium']) ? sanitize_text_field($row['medium']) : '');
-            update_post_meta($post_id, '_artopia_year', isset($row['year']) ? absint($row['year']) : 0);
-            update_post_meta($post_id, '_artopia_dimensions', isset($row['dimensions']) ? sanitize_text_field($row['dimensions']) : '');
-            update_post_meta($post_id, '_artopia_price', isset($row['price']) ? sanitize_text_field($row['price']) : '');
-
-            $status = isset($row['status']) ? (string) $row['status'] : '';
-            update_post_meta($post_id, '_artopia_status', Helpers::normalize_artwork_status($status));
+            update_post_meta($post_id, '_artopia_artist_id', $data['artist_id']);
+            update_post_meta($post_id, '_artopia_filename', $data['filename']);
+            update_post_meta($post_id, '_artopia_medium', $data['medium']);
+            update_post_meta($post_id, '_artopia_year', $data['year']);
+            update_post_meta($post_id, '_artopia_dimensions', $data['dimensions']);
+            update_post_meta($post_id, '_artopia_price', $data['price']);
+            update_post_meta($post_id, '_artopia_status', $data['status']);
 
             wp_set_object_terms($post_id, [$gallery_term_id], 'gallery');
 
-            $attachment_id = $this->find_attachment_by_filename($filename);
+            $attachment_id = $this->find_attachment_by_filename($data['filename']);
 
             if ($attachment_id > 0) {
                 set_post_thumbnail($post_id, $attachment_id);
@@ -394,16 +401,16 @@ class Importer
                 $result['import_summary']['matched_images']++;
                 $result['import_summary']['image_messages'][] = sprintf(
                     __('Row %1$d: matched image "%2$s" to attachment ID %3$d.', 'artopia-gallery'),
-                    $index + 2,
-                    $filename,
+                    $row_number,
+                    $data['filename'],
                     $attachment_id
                 );
             } else {
                 $result['import_summary']['missing_images']++;
                 $result['import_summary']['image_messages'][] = sprintf(
                     __('Row %1$d: no Media Library image found for "%2$s".', 'artopia-gallery'),
-                    $index + 2,
-                    $filename
+                    $row_number,
+                    $data['filename']
                 );
             }
 
@@ -418,6 +425,22 @@ class Importer
             $result['import_summary']['skipped']
         );
     }
+
+    private function normalize_import_row(array $row, int $artist_id): array
+    {
+        return Artwork_Data::normalize([
+            'artist_id' => $artist_id,
+            'title' => $row['title'] ?? '',
+            'filename' => $row['filename'] ?? '',
+            'medium' => $row['medium'] ?? '',
+            'year' => $row['year'] ?? '',
+            'dimensions' => $row['dimensions'] ?? '',
+            'price' => $row['price'] ?? '',
+            'status' => $row['status'] ?? '',
+            'description' => $row['description'] ?? '',
+        ]);
+    }
+
 
     private function artwork_exists(int $artist_id, string $filename): bool
     {

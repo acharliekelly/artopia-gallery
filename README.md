@@ -6,7 +6,7 @@ Custom WordPress plugin for managing artist portfolios, importing artwork catalo
 
 Artopia Gallery is a purpose-built WordPress plugin designed to streamline the process of turning artist inventory data into polished web galleries.
 
-Many artists maintain artwork records in spreadsheets or Lightroom exports but have little interest in building or maintaining websites. This plugin bridges that gap by allowing administrators to bulk import artwork data, organize artists and galleries, and manage collections inside WordPress.
+Many artists maintain artwork records in spreadsheets or Lightroom exports but have little interest in building or maintaining websites. This plugin bridges that gap by allowing administrators to bulk import artwork data as drafts, organize artists and galleries, and manage collections inside WordPress.
 
 ## Current Features
 
@@ -39,8 +39,10 @@ Admin import workflow includes:
 - Header normalization / alias handling
 - Required field enforcement
 - Duplicate prevention by filename + artist
-- Bulk creation of Artwork posts
+- Bulk creation of draft Artwork posts
 - Import summary reporting
+
+Imported artworks are currently created as drafts so they can be reviewed in WordPress before being published publicly.
 
 ### Supported CSV Columns
 

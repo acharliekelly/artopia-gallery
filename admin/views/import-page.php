@@ -22,7 +22,7 @@ $preview_rows = array_slice($result['rows'], 0, 10);
     <h1><?php esc_html_e('Import Artwork CSV', 'artopia-gallery'); ?></h1>
 
     <p>
-        <?php esc_html_e('Validate a CSV first, then import it into Artwork posts.', 'artopia-gallery'); ?>
+        <?php esc_html_e('Validate a CSV first, then import it into draft Artwork posts for review.', 'artopia-gallery'); ?>
     </p>
 
     <form method="post" enctype="multipart/form-data">
@@ -159,7 +159,7 @@ $preview_rows = array_slice($result['rows'], 0, 10);
             <table class="widefat striped">
                 <tbody>
                     <tr>
-                        <th><?php esc_html_e('Created', 'artopia-gallery'); ?></th>
+                        <th><?php esc_html_e('Drafts Created', 'artopia-gallery'); ?></th>
                         <td><?php echo esc_html((string) $result['import_summary']['created']); ?></td>
                     </tr>
                     <tr>

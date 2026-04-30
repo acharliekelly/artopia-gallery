@@ -315,7 +315,7 @@ class Importer
     {
         return wp_insert_post([
             'post_type' => 'artwork',
-            'post_status' => 'publish',
+            'post_status' => 'draft',
             'post_title' => $data['title'],
             'post_content' => $data['description'],
         ], true);
@@ -420,10 +420,11 @@ class Importer
 
         $result['did_import'] = true;
         $result['messages'][] = sprintf(
-            __('Import complete. Created %1$d artwork(s), skipped %2$d.', 'artopia-gallery'),
+            __('Import complete. Created %1$d draft artwork(s), skipped %2$d.', 'artopia-gallery'),
             $result['import_summary']['created'],
             $result['import_summary']['skipped']
         );
+
     }
 
     private function normalize_import_row(array $row, int $artist_id): array

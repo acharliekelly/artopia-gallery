@@ -52,6 +52,9 @@ class Importer
             'import_summary' => [
                 'created' => 0,
                 'skipped' => 0,
+                'duplicates' => 0,
+                'invalid_rows' => 0,
+                'failed_creates' => 0,
                 'matched_images' => 0,
                 'missing_images' => 0,
                 'gallery_term_id' => 0,
@@ -313,9 +316,10 @@ class Importer
 
     private function create_artwork_post(array $data)
     {
+        // Draft | Publish
         return wp_insert_post([
             'post_type' => 'artwork',
-            'post_status' => 'draft',
+            'post_status' => 'publish',
             'post_title' => $data['title'],
             'post_content' => $data['description'],
         ], true);
@@ -346,9 +350,12 @@ class Importer
         foreach ($result['rows'] as $index => $row) {
             $row_number = $index + 2;
             $data = $this->normalize_import_row($row, $artist_id);
+            $import_key = $this->build_row_import_key($data);
 
+            // Missing values
             if ($data['filename'] === '' || $data['title'] === '') {
                 $result['import_summary']['skipped']++;
+                $result['import_summary']['invalid_rows']++;
                 $result['import_summary']['skipped_rows'][] = sprintf(
                     __('Row %d skipped due to missing required values.', 'artopia-gallery'),
                     $row_number
@@ -356,20 +363,23 @@ class Importer
                 continue;
             }
 
-            if ($this->artwork_exists($artist_id, $data['filename'])) {
+            // Duplicate artwork
+            if ($this->imported_artwork_exists($data)) {
                 $result['import_summary']['skipped']++;
+                $result['import_summary']['duplicates']++;
                 $result['import_summary']['skipped_rows'][] = sprintf(
-                    __('Row %1$d skipped because filename "%2$s" already exists for this artist.', 'artopia-gallery'),
-                    $row_number,
-                    $data['filename']
+                    __('Row %1$d skipped because a matching imported artwork already exists for this artist.', 'artopia-gallery'),
+                    $row_number
                 );
                 continue;
             }
 
             $post_id = $this->create_artwork_post($data);
 
+            // Failed post creation
             if (is_wp_error($post_id)) {
                 $result['import_summary']['skipped']++;
+                $result['import_summary']['failed_creates']++;
                 $result['import_summary']['skipped_rows'][] = sprintf(
                     __('Row %1$d failed to import: %2$s', 'artopia-gallery'),
                     $row_number,
@@ -385,6 +395,7 @@ class Importer
             update_post_meta($post_id, '_artopia_dimensions', $data['dimensions']);
             update_post_meta($post_id, '_artopia_price', $data['price']);
             update_post_meta($post_id, '_artopia_status', $data['status']);
+            update_post_meta($post_id, '_artopia_import_key', $import_key);
 
             wp_set_object_terms($post_id, [$gallery_term_id], 'gallery');
 
@@ -420,7 +431,7 @@ class Importer
 
         $result['did_import'] = true;
         $result['messages'][] = sprintf(
-            __('Import complete. Created %1$d draft artwork(s), skipped %2$d.', 'artopia-gallery'),
+            __('Import complete. Created %1$d artwork(s), skipped %2$d row(s).', 'artopia-gallery'),
             $result['import_summary']['created'],
             $result['import_summary']['skipped']
         );
@@ -442,8 +453,49 @@ class Importer
         ]);
     }
 
+    private function build_row_import_key(array $data): string
+    {
+        return Artwork_Data::build_import_key($data);
+    }
 
-    private function artwork_exists(int $artist_id, string $filename): bool
+    private function imported_artwork_exists(array $data): bool
+    {
+        $import_key = $this->build_row_import_key($data);
+
+        if ($this->artwork_exists_by_import_key($import_key)) {
+            return true;
+        }
+
+        return $this->artwork_exists_by_artist_filename(
+            (int) $data['artist_id'],
+            (string) $data['filename']
+        );
+    }
+
+    private function artwork_exists_by_import_key(string $import_key): bool
+    {
+        if ($import_key === '') {
+            return false;
+        }
+
+        $query = new \WP_Query([
+            'post_type' => 'artwork',
+            'post_status' => 'any',
+            'posts_per_page' => 1,
+            'fields' => 'ids',
+            'meta_query' => [
+                [
+                    'key' => '_artopia_import_key',
+                    'value' => $import_key,
+                    'compare' => '=',
+                ],
+            ],
+        ]);
+
+        return $query->have_posts();
+    }
+
+    private function artwork_exists_by_artist_filename(int $artist_id, string $filename): bool
     {
         $query = new \WP_Query([
             'post_type' => 'artwork',

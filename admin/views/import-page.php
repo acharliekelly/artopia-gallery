@@ -22,7 +22,7 @@ $preview_rows = array_slice($result['rows'], 0, 10);
     <h1><?php esc_html_e('Import Artwork CSV', 'artopia-gallery'); ?></h1>
 
     <p>
-        <?php esc_html_e('Validate a CSV first, then import it into draft Artwork posts for review.', 'artopia-gallery'); ?>
+        <?php esc_html_e('Validate a CSV first, then import it into Artwork posts.', 'artopia-gallery'); ?>
     </p>
 
     <form method="post" enctype="multipart/form-data">
@@ -159,12 +159,24 @@ $preview_rows = array_slice($result['rows'], 0, 10);
             <table class="widefat striped">
                 <tbody>
                     <tr>
-                        <th><?php esc_html_e('Drafts Created', 'artopia-gallery'); ?></th>
+                        <th><?php esc_html_e('Created', 'artopia-gallery'); ?></th>
                         <td><?php echo esc_html((string) $result['import_summary']['created']); ?></td>
                     </tr>
                     <tr>
                         <th><?php esc_html_e('Skipped', 'artopia-gallery'); ?></th>
                         <td><?php echo esc_html((string) $result['import_summary']['skipped']); ?></td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('Duplicate Skips', 'artopia-gallery'); ?></th>
+                        <td><?php echo esc_html((string) $result['import_summary']['duplicates']); ?></td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('Invalid Rows', 'artopia-gallery'); ?></th>
+                        <td><?php echo esc_html((string) $result['import_summary']['invalid_rows']); ?></td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('Failed Creates', 'artopia-gallery'); ?></th>
+                        <td><?php echo esc_html((string) $result['import_summary']['failed_creates']); ?></td>
                     </tr>
                     <tr>
                         <th><?php esc_html_e('Matched Images', 'artopia-gallery'); ?></th>
@@ -180,6 +192,7 @@ $preview_rows = array_slice($result['rows'], 0, 10);
                     </tr>
                 </tbody>
             </table>
+
 
             <?php if (!empty($result['import_summary']['created_ids'])) : ?>
                 <h4><?php esc_html_e('Created Artwork IDs', 'artopia-gallery'); ?></h4>

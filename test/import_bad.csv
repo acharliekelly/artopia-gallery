@@ -1,3 +1,5 @@
-medium,year,dimensions,price,status
-Oil,2024,10 x 12 in,800,available
-Pastel,2025,8 x 10 in,600,inquiry
+filename,title,medium,year,dimensions,price,status,description
+,Missing Filename,Oil,2024,24 x 36 in,1800,available,This row is missing a filename.
+missing-title.jpg,,Pastel,2025,12 x 16 in,450,sold,This row is missing a title.
+bad-status.jpg,Bad Status Example,Acrylic,2023,18 x 24 in,950,archived,This row uses an unsupported status.
+bad-year.jpg,Bad Year Example,Watercolor,2024-ish,16 x 20 in,$600.00,available,This row has a non-integer year.

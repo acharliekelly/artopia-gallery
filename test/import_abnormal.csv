@@ -1,3 +1,5 @@
-image,name,size,price,status,notes
-regency-hyatt.jpeg,Regency Hyatt,Acrylic,2020,12 x 9 in,800,sold
-midwinter.jpeg,Midwinter,Acrylic,2020,7 x 5 in,200,available
+ image , name , medium , year , size , price , status , artist_statement
+  regency-hyatt.jpg  ,  Marsh Sunset  ,  Oil on Canvas  , 2024 , 24x36 , $1,800.00 , available , <p>Golden evening marsh light.</p>
+midwinter.jpg,Cat Study,Pastel,002025,12 x 16 in,$450,sold,<strong>Small portrait study.</strong>
+mainewoods.jpg,Studio Window,Acrylic on Panel,99999,18x24in,USD 950,inquiry,Window light and reflected color.
+canopy.jpg,Orchard Path,Watercolor,2022,16 x 20 in,600.00,PRINT_AVAILABLE,A spring orchard scene with unusual status casing

@@ -1,0 +1,12 @@
+{
+    "name": "artopia/artopia-gallery",
+    "description": "Development dependencies and test tooling for the Artopia Gallery WordPress plugin.",
+    "type": "wordpress-plugin",
+    "require-dev": {
+        "php-stubs/wordpress-stubs": "^6.9",
+        "phpunit/phpunit": "^10.5"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

@@ -23,7 +23,8 @@ jobs:
           coverage: none
 
       - name: Validate Composer file
-        run: php -r "json_decode(file_get_contents('composer.json')); exit(json_last_error() === JSON_ERROR_NONE ? 0 : 1);"
+        run: |
+          php -r "json_decode(file_get_contents('composer.json')); exit(json_last_error() === JSON_ERROR_NONE ? 0 : 1);"
 
       - name: Install dependencies
         run: composer install --no-interaction --no-progress --prefer-dist

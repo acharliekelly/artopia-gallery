@@ -412,6 +412,11 @@ body {
   font-size: 1rem;
 }
 
+.artopia-gallery-taxonomy-page {
+  min-height: 60vh;
+}
+
+
 
 /* MOBILE */
 @media (max-width: 900px) {

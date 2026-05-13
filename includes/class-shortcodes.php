@@ -91,6 +91,10 @@ class Shortcodes {
   }
 
   public function render_gallery_shortcode(array $atts = []): string {
+    return $this->render_gallery($atts);
+  }
+
+  public function render_gallery(array $atts = []): string {
     $atts = shortcode_atts([
       'gallery' => '',
       'artist_id' => 0,
@@ -148,15 +152,13 @@ class Shortcodes {
       $gallery_description = term_description((int) $gallery_term->term_id, 'gallery');
     }
 
-    if ($gallery_slug !== '') {
-      $term = get_term_by('slug', $gallery_slug, 'gallery');
+    $gallery_term = $resolved_gallery_term;
 
-      if ($term && !is_wp_error($term)) {
-        $gallery_term = $term;
-        $gallery_title = $term->name;
-        $gallery_description = term_description((int) $term->term_id, 'gallery');
-      }
+    if ($gallery_term instanceof \WP_Term) {
+      $gallery_title = $gallery_term->name;
+      $gallery_description = term_description((int) $gallery_term->term_id, 'gallery');
     }
+
 
     $artist_name = '';
     if ($artist_id > 0) {

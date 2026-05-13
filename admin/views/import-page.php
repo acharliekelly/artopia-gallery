@@ -63,6 +63,27 @@ $preview_rows = array_slice($result['rows'], 0, 10);
 
                 <tr>
                     <th scope="row">
+                        <label for="artopia_import_post_status">
+                            <?php esc_html_e('Import Status', 'artopia-gallery'); ?>
+                        </label>
+                    </th>
+                    <td>
+                        <select name="artopia_import_post_status" id="artopia_import_post_status">
+                            <option value="publish" <?php selected($result['import_post_status'] ?? 'publish', 'publish'); ?>>
+                                <?php esc_html_e('Published', 'artopia-gallery'); ?>
+                            </option>
+                            <option value="draft" <?php selected($result['import_post_status'] ?? 'publish', 'draft'); ?>>
+                                <?php esc_html_e('Draft', 'artopia-gallery'); ?>
+                            </option>
+                        </select>
+                        <p class="description">
+                            <?php esc_html_e('Choose whether imported artworks are published immediately or saved as drafts.', 'artopia-gallery'); ?>
+                        </p>
+                    </td>
+                </tr>
+
+                <tr>
+                    <th scope="row">
                         <label for="artopia_csv_file"><?php esc_html_e('CSV File', 'artopia-gallery'); ?></label>
                     </th>
                     <td>
@@ -190,9 +211,17 @@ $preview_rows = array_slice($result['rows'], 0, 10);
                         <th><?php esc_html_e('Gallery Term ID', 'artopia-gallery'); ?></th>
                         <td><?php echo esc_html((string) $result['import_summary']['gallery_term_id']); ?></td>
                     </tr>
+                    <tr>
+                        <th><?php esc_html_e('Import Status', 'artopia-gallery'); ?></th>
+                        <td>
+                            <?php
+                            $status = $result['import_post_status'] ?? 'publish';
+                            echo esc_html($status === 'draft' ? __('Draft', 'artopia-gallery') : __('Published', 'artopia-gallery'));
+                            ?>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
-
 
             <?php if (!empty($result['import_summary']['created_ids'])) : ?>
                 <h4><?php esc_html_e('Created Artwork IDs', 'artopia-gallery'); ?></h4>

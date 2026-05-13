@@ -35,6 +35,27 @@ class Importer
         'notes' => 'description',
     ];
 
+    private function import_post_status_labels(): array
+    {
+        return [
+            'publish' => __('Published', 'artopia-gallery'),
+            'draft' => __('Draft', 'artopia-gallery'),
+        ];
+    }
+
+    private function normalize_import_post_status(string $status): string
+    {
+        $status = sanitize_key($status);
+        return array_key_exists($status, $this->import_post_status_labels())
+             ? $status
+             : 'publish';
+    }
+
+    private function import_status_summary_label(string $status): string 
+    {
+        return $status === 'draft' ? __('draft', 'artopia-gallery') : __('published', 'artopia-gallery');
+    }
+
     public function handle_request(): array
     {
         $result = [
@@ -42,6 +63,7 @@ class Importer
             'did_import' => false,
             'artist_id' => 0,
             'gallery_name' => '',
+            'import_post_status' => 'publish',
             'messages' => [],
             'warnings' => [],
             'errors' => [],
@@ -94,6 +116,13 @@ class Importer
         $action = isset($_POST['artopia_import_action'])
             ? sanitize_text_field(wp_unslash($_POST['artopia_import_action']))
             : 'validate';
+
+        $result['import_post_status'] = isset($_POST['artopia_import_post_status'])
+            ? $this->normalize_import_post_status(
+                sanitize_text_field(wp_unslash($_POST['artopia_import_post_status']))
+            )
+            : 'publish';
+
 
         if ($result['artist_id'] <= 0) {
             $result['errors'][] = __('Please select an artist.', 'artopia-gallery');
@@ -314,12 +343,11 @@ class Importer
         }
     }
 
-    private function create_artwork_post(array $data)
+    private function create_artwork_post(array $data, string $post_status)
     {
-        // Imports currently create published artwork posts for faster manual testing.
         return wp_insert_post([
             'post_type' => 'artwork',
-            'post_status' => 'publish',
+            'post_status' => $this->normalize_import_post_status($post_status),
             'post_title' => $data['title'],
             'post_content' => $data['description'],
         ], true);
@@ -375,7 +403,7 @@ class Importer
                 continue;
             }
 
-            $post_id = $this->create_artwork_post($data);
+            $post_id = $this->create_artwork_post($data, (string) $result['import_post_status']);
 
             // Failed post creation
             if (is_wp_error($post_id)) {
@@ -431,12 +459,16 @@ class Importer
         }
 
         $result['did_import'] = true;
+
+        $status_labels = $this->import_post_status_labels();
+        $status_label = strtolower($status_labels[$result['import_post_status']] ?? __('Published', 'artopia-gallery'));
+
         $result['messages'][] = sprintf(
-            __('Import complete. Created %1$d artwork(s), skipped %2$d row(s).', 'artopia-gallery'),
+            __('Import complete. Created %1$d %2$s artwork(s), skipped %3$d row(s).', 'artopia-gallery'),
             $result['import_summary']['created'],
+            $this->import_status_summary_label((string) $result['import_post_status']),
             $result['import_summary']['skipped']
         );
-
     }
 
     protected function normalize_import_row(array $row, int $artist_id): array

@@ -87,3 +87,24 @@ Install dev dependencies from the plugin directory:
 cd wp-content/plugins/artopia-gallery
 composer install
 ```
+
+Run unit tests:
+
+```bash
+composer test
+```
+
+## Testing
+
+Unit tests live in `tests/Unit`.
+
+Manual importer regression fixtures live in `fixtures/`:
+
+- `import_min.csv`: minimal valid import
+- `import_default.csv`: standard happy-path import with real image filenames
+- `import_bad.csv`: invalid rows and warning scenarios
+- `import_abnormal.csv`: normalization and alias-header edge cases
+- `import_duplicates.csv`: repeat-import duplicate checks
+- `import_same_filename_diff_title.csv`: same filename, different title duplicate behavior
+
+CI runs PHPUnit and PHP syntax linting through GitHub Actions in `.github/workflows/phpunit.yml`.

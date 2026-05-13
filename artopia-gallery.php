@@ -22,6 +22,7 @@ require_once ARTOPIA_GALLERY_PLUGIN_PATH . 'includes/class-helpers.php';
 require_once ARTOPIA_GALLERY_PLUGIN_PATH . 'includes/class-plugin.php';
 require_once ARTOPIA_GALLERY_PLUGIN_PATH . 'includes/class-post-types.php';
 require_once ARTOPIA_GALLERY_PLUGIN_PATH . 'includes/class-taxonomies.php';
+require_once ARTOPIA_GALLERY_PLUGIN_PATH . 'includes/class-gallery-terms.php';
 require_once ARTOPIA_GALLERY_PLUGIN_PATH . 'includes/class-meta.php';
 require_once ARTOPIA_GALLERY_PLUGIN_PATH . 'includes/class-meta-boxes.php';
 require_once ARTOPIA_GALLERY_PLUGIN_PATH . 'includes/class-admin.php';

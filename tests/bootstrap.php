@@ -57,7 +57,54 @@ if (!function_exists('wp_kses_post')) {
     }
 }
 
+
+$GLOBALS['artopia_test_term_meta'] = [];
+
+if (!function_exists('get_term_meta')) {
+    function get_term_meta($term_id, $key, $single = false)
+    {
+        $store = $GLOBALS['artopia_test_term_meta'] ?? [];
+
+        if (!isset($store[$term_id]) || !array_key_exists($key, $store[$term_id])) {
+            return $single ? '' : [];
+        }
+
+        return $store[$term_id][$key];
+    }
+}
+
+if (!function_exists('sanitize_title')) {
+    function sanitize_title($title): string
+    {
+        $title = is_string($title) ? $title : (string) $title;
+        $title = strtolower(trim($title));
+        /** @disregard unrecognized function preg_replace */
+        $title = preg_replace('/[^a-z0-9]+/', '-', $title);
+
+        return trim((string) $title, '-');
+    }
+}
+
+if (!class_exists('WP_Term')) {
+    class WP_Term
+    {
+        public int $term_id = 0;
+        public string $name = '';
+        public string $slug = '';
+
+        public function __construct(object $term)
+        {
+            $this->term_id = isset($term->term_id) ? (int) $term->term_id : 0;
+            $this->name = isset($term->name) ? (string) $term->name : '';
+            $this->slug = isset($term->slug) ? (string) $term->slug : '';
+        }
+    }
+}
+
+
+
+
 require_once dirname(__DIR__) . '/includes/class-helpers.php';
 require_once dirname(__DIR__) . '/includes/class-artwork-data.php';
 require_once dirname(__DIR__) . '/includes/class-importer.php';
-
+require_once dirname(__DIR__) . '/includes/class-gallery-terms.php';

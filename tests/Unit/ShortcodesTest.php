@@ -162,4 +162,52 @@ final class ShortcodesTest extends TestCase
     {
         self::assertSame([], $this->shortcodes->callBuildGalleryTaxQuery('', 12));
     }
+
+    public function testResolveGalleryTermReturnsLegacyUnownedTermWhenNoOwnedMatchExists(): void
+    {
+        $legacy = $this->makeTerm(130, 'Landscapes', 'landscapes');
+
+        $this->setTerms([$legacy]);
+
+        $term = $this->shortcodes->callResolveGalleryTerm('landscapes', 12);
+
+        self::assertInstanceOf(WP_Term::class, $term);
+        self::assertSame(130, $term->term_id);
+    }
+
+    public function testResolveGalleryTermPrefersOwnedTermOverLegacyFallback(): void
+    {
+        $legacy = $this->makeTerm(131, 'Landscapes', 'landscapes');
+        $owned = $this->makeTerm(132, 'Landscapes', 'landscapes-artist');
+
+        $this->setTerms([$legacy, $owned]);
+        $this->setTermMeta(132, '_artopia_artist_id', 12);
+
+        $term = $this->shortcodes->callResolveGalleryTerm('landscapes-artist', 12);
+
+        self::assertInstanceOf(WP_Term::class, $term);
+        self::assertSame(132, $term->term_id);
+    }
+
+    public function testBuildGalleryTaxQueryUsesResolvedLegacyTermIdWhenNoOwnedMatchExists(): void
+    {
+        $legacy = $this->makeTerm(133, 'Landscapes', 'landscapes');
+
+        $this->setTerms([$legacy]);
+
+        $taxQuery = $this->shortcodes->callBuildGalleryTaxQuery('landscapes', 12);
+
+        self::assertSame(
+            [
+                [
+                    'taxonomy' => 'gallery',
+                    'field' => 'term_id',
+                    'terms' => [133],
+                ],
+            ],
+            $taxQuery
+        );
+    }
+
+
 }

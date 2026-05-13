@@ -141,6 +141,14 @@ class Gallery_Terms
             return (int) $existing->term_id;
         }
 
+        $legacy = $this->find_legacy_unowned_by_name($gallery_name);
+
+        if ($legacy instanceof \WP_Term) {
+            update_term_meta((int) $legacy->term_id, self::ARTIST_META_KEY, $artist_id);
+
+            return (int) $legacy->term_id;
+        }
+
         $created = wp_insert_term($gallery_name, 'gallery');
 
         if (is_wp_error($created)) {
@@ -159,5 +167,100 @@ class Gallery_Terms
         update_term_meta($term_id, self::ARTIST_META_KEY, $artist_id);
 
         return $term_id;
+
     }
+
+    public function term_is_unowned(int $term_id): bool
+    {
+        return $this->get_artist_id_for_term($term_id) === 0;
+    }
+
+    public function find_legacy_unowned_by_name(string $gallery_name): ?\WP_Term
+    {
+        $gallery_name = trim(sanitize_text_field($gallery_name));
+
+        if ($gallery_name === '') {
+            return null;
+        }
+
+        $terms = get_terms([
+            'taxonomy' => 'gallery',
+            'hide_empty' => false,
+            'name' => $gallery_name,
+        ]);
+
+        if (is_wp_error($terms) || empty($terms) || !is_array($terms)) {
+            return null;
+        }
+
+        foreach ($terms as $term) {
+            if (!$term instanceof \WP_Term) {
+                continue;
+            }
+
+            if ($this->term_is_unowned((int) $term->term_id)) {
+                return $term;
+            }
+        }
+
+        return null;
+    }
+
+    public function find_legacy_unowned_by_slug(string $gallery_slug): ?\WP_Term
+    {
+        $gallery_slug = sanitize_title($gallery_slug);
+
+        if ($gallery_slug === '') {
+            return null;
+        }
+
+        $terms = get_terms([
+            'taxonomy' => 'gallery',
+            'hide_empty' => false,
+            'slug' => $gallery_slug,
+        ]);
+
+        if (is_wp_error($terms) || empty($terms) || !is_array($terms)) {
+            return null;
+        }
+
+        foreach ($terms as $term) {
+            if (!$term instanceof \WP_Term) {
+                continue;
+            }
+
+            if ($this->term_is_unowned((int) $term->term_id)) {
+                return $term;
+            }
+        }
+
+        return null;
+    }
+
+    public function find_by_artist_and_name_with_legacy_fallback(int $artist_id, string $gallery_name): ?\WP_Term
+    {
+        $owned = $this->find_by_artist_and_name($artist_id, $gallery_name);
+
+        if ($owned instanceof \WP_Term) {
+            return $owned;
+        }
+
+        return $this->find_legacy_unowned_by_name($gallery_name);
+    }
+
+    public function find_by_artist_and_slug_with_legacy_fallback(int $artist_id, string $gallery_slug): ?\WP_Term
+    {
+        $owned = $this->find_by_artist_and_slug($artist_id, $gallery_slug);
+
+        if ($owned instanceof \WP_Term) {
+            return $owned;
+        }
+
+        return $this->find_legacy_unowned_by_slug($gallery_slug);
+    }
+
+
+
+
+
 }

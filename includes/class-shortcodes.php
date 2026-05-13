@@ -20,7 +20,7 @@ class Shortcodes {
 
       if ($artist_id > 0) {
           $gallery_terms = new Gallery_Terms();
-          $term = $gallery_terms->find_by_artist_and_slug($artist_id, $gallery_slug);
+          $term = $gallery_terms->find_by_artist_and_name_with_legacy_fallback($artist_id, $gallery_slug);
 
           if ($term instanceof \WP_Term) {
               return $term;
@@ -232,7 +232,7 @@ class Shortcodes {
                   'class' => 'artopia-gallery-image',
                   'loading' => 'lazy',
                 ])
-                : '<div class="artopia-gallery-placeholder">' . esc_html('No image', 'artopia-gallery') . '</div>';
+                : '<div class="artopia-gallery-placeholder">' . esc_html('No image') . '</div>';
             
             $lightbox_url = '';
 

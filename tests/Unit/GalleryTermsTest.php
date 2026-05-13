@@ -241,4 +241,112 @@ final class GalleryTermsTest extends TestCase
         self::assertInstanceOf(\WP_Error::class, $result);
         self::assertSame('artopia_invalid_gallery_name', $result->get_error_code());
     }
+
+    public function testTermIsUnownedReturnsTrueWhenNoArtistMetaExists(): void
+    {
+        self::assertTrue($this->galleryTerms->term_is_unowned(88));
+    }
+
+    public function testTermIsUnownedReturnsFalseWhenArtistMetaExists(): void
+    {
+        $this->setTermMeta(88, Gallery_Terms::artist_meta_key(), 12);
+
+        self::assertFalse($this->galleryTerms->term_is_unowned(88));
+    }
+
+    public function testFindLegacyUnownedByNameReturnsMatchingUnownedTerm(): void
+    {
+        $legacy = $this->makeTerm(90, 'Landscapes', 'landscapes');
+        $owned = $this->makeTerm(91, 'Landscapes', 'landscapes-2');
+
+        $this->setTerms([$legacy, $owned]);
+        $this->setTermMeta(91, Gallery_Terms::artist_meta_key(), 12);
+
+        $found = $this->galleryTerms->find_legacy_unowned_by_name('Landscapes');
+
+        self::assertInstanceOf(WP_Term::class, $found);
+        self::assertSame(90, $found->term_id);
+    }
+
+    public function testFindLegacyUnownedBySlugReturnsMatchingUnownedTerm(): void
+    {
+        $legacy = $this->makeTerm(92, 'Blue Hill', 'blue-hill');
+        $owned = $this->makeTerm(93, 'Blue Hill', 'blue-hill-2');
+
+        $this->setTerms([$legacy, $owned]);
+        $this->setTermMeta(93, Gallery_Terms::artist_meta_key(), 12);
+
+        $found = $this->galleryTerms->find_legacy_unowned_by_slug('Blue Hill');
+
+        self::assertInstanceOf(WP_Term::class, $found);
+        self::assertSame(92, $found->term_id);
+    }
+
+    public function testFindByArtistAndNameWithLegacyFallbackPrefersOwnedTerm(): void
+    {
+        $owned = $this->makeTerm(94, 'Landscapes', 'landscapes');
+        $legacy = $this->makeTerm(95, 'Landscapes', 'landscapes-legacy');
+
+        $this->setTerms([$legacy, $owned]);
+        $this->setTermMeta(94, Gallery_Terms::artist_meta_key(), 12);
+
+        $found = $this->galleryTerms->find_by_artist_and_name_with_legacy_fallback(12, 'Landscapes');
+
+        self::assertInstanceOf(WP_Term::class, $found);
+        self::assertSame(94, $found->term_id);
+    }
+
+    public function testFindByArtistAndNameWithLegacyFallbackReturnsLegacyWhenOwnedTermMissing(): void
+    {
+        $legacy = $this->makeTerm(96, 'Landscapes', 'landscapes');
+
+        $this->setTerms([$legacy]);
+
+        $found = $this->galleryTerms->find_by_artist_and_name_with_legacy_fallback(12, 'Landscapes');
+
+        self::assertInstanceOf(WP_Term::class, $found);
+        self::assertSame(96, $found->term_id);
+    }
+
+
+    public function testFindByArtistAndSlugWithLegacyFallbackPrefersOwnedTerm(): void
+    {
+        $owned = $this->makeTerm(97, 'Blue Hill', 'blue-hill');
+        $legacy = $this->makeTerm(98, 'Blue Hill', 'blue-hill-legacy');
+
+        $this->setTerms([$legacy, $owned]);
+        $this->setTermMeta(97, Gallery_Terms::artist_meta_key(), 7);
+
+        $found = $this->galleryTerms->find_by_artist_and_slug_with_legacy_fallback(7, 'Blue Hill');
+
+        self::assertInstanceOf(WP_Term::class, $found);
+        self::assertSame(97, $found->term_id);
+    }
+
+    public function testFindByArtistAndSlugWithLegacyFallbackReturnsLegacyWhenOwnedTermMissing(): void
+    {
+        $legacy = $this->makeTerm(99, 'Blue Hill', 'blue-hill');
+
+        $this->setTerms([$legacy]);
+
+        $found = $this->galleryTerms->find_by_artist_and_slug_with_legacy_fallback(7, 'Blue Hill');
+
+        self::assertInstanceOf(WP_Term::class, $found);
+        self::assertSame(99, $found->term_id);
+    }
+
+    public function testGetOrCreateForArtistAdoptsLegacyUnownedTerm(): void
+    {
+        $legacy = $this->makeTerm(120, 'Landscapes', 'landscapes');
+
+        $this->setTerms([$legacy]);
+
+        $termId = $this->galleryTerms->get_or_create_for_artist(12, 'Landscapes');
+
+        self::assertSame(120, $termId);
+
+        $termMeta = $this->getTermMetaStore();
+        self::assertSame(12, $termMeta[120][Gallery_Terms::artist_meta_key()]);
+    }
+
 }

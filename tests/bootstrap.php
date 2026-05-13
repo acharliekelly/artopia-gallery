@@ -55,3 +55,5 @@ if (!function_exists('wp_kses_post')) {
 
 require_once dirname(__DIR__) . '/includes/class-helpers.php';
 require_once dirname(__DIR__) . '/includes/class-artwork-data.php';
+require_once dirname(__DIR__) . '/includes/class-importer.php';
+

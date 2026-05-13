@@ -438,7 +438,7 @@ class Importer
 
     }
 
-    private function normalize_import_row(array $row, int $artist_id): array
+    protected function normalize_import_row(array $row, int $artist_id): array
     {
         return Artwork_Data::normalize([
             'artist_id' => $artist_id,
@@ -453,7 +453,7 @@ class Importer
         ]);
     }
 
-    private function build_row_import_key(array $data): string
+    protected function build_row_import_key(array $data): string
     {
         return Artwork_Data::build_import_key($data);
     }
@@ -585,7 +585,7 @@ class Importer
         return array_values(array_unique($candidates));
     }
 
-    private function normalize_column_name(string $column_name): string
+    protected function normalize_column_name(string $column_name): string
     {
         $normalized = strtolower(trim($column_name));
         $normalized = str_replace([' ', '-'], '_', $normalized);
@@ -597,7 +597,7 @@ class Importer
         return $normalized;
     }
 
-    private function find_unknown_columns(array $columns): array
+    protected function find_unknown_columns(array $columns): array
     {
         $known_columns = array_merge(
             $this->required_columns,
@@ -609,7 +609,7 @@ class Importer
         }));
     }
 
-    private function row_is_empty(array $row): bool
+    protected function row_is_empty(array $row): bool
     {
         foreach ($row as $value) {
             if (trim((string) $value) !== '') {

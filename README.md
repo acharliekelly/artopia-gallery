@@ -56,6 +56,16 @@ The preferred shortcode pattern for gallery-specific output is:
 
 When both `gallery` and `artist_id` are provided, the plugin resolves the gallery in artist context. Using `gallery` alone remains supported for backward compatibility, but can be ambiguous if multiple artists reuse the same gallery name.
 
+## Public templates
+
+The plugin now manages its own public templates for:
+
+- artist archive pages
+- gallery taxonomy pages
+- single artwork pages
+
+Template routing is handled inside the plugin, and gallery taxonomy pages reuse the same shared gallery rendering path used by the shortcode. The shortcode remains available and is still the preferred portable way to embed gallery output inside other content.
+
 Future enhancement:
 
 - Make import status selectable on the import page, such as publish vs draft

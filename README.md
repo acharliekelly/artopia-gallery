@@ -14,7 +14,7 @@ Many artists maintain artwork records in spreadsheets or Lightroom exports but h
 
 - **Artists** custom post type
 - **Artworks** custom post type
-- **Gallery** taxonomy for organizing collections
+- **Gallery** taxonomy for organizing artist-scoped collections
 
 ### Artwork Metadata
 
@@ -39,8 +39,22 @@ Admin import workflow includes:
 - Header normalization / alias handling
 - Required field enforcement
 - Duplicate prevention for repeated imports using a normalized import identity, with legacy fallback checks for older imported records
+- Artist-scoped gallery lookup and creation
+- Legacy unowned gallery adoption when a matching gallery is reused during import
 - Bulk creation of Artwork posts
 - Import summary reporting
+
+Gallery terms are treated as artist-owned collections by the plugin. Two artists may use the same gallery name without sharing the same logical gallery record.
+
+## Shortcode behavior
+
+The preferred shortcode pattern for gallery-specific output is:
+
+```text
+[artopia-gallery gallery="landscapes" artist_id="123"]
+```
+
+When both `gallery` and `artist_id` are provided, the plugin resolves the gallery in artist context. Using `gallery` alone remains supported for backward compatibility, but can be ambiguous if multiple artists reuse the same gallery name.
 
 Future enhancement:
 

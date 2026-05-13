@@ -331,6 +331,48 @@ body {
   right: calc(360px + 1rem);
 }
 
+/* MOBILE LIGHTBOX */
+@media (max-width: 900px) {
+  .artopia-gallery-lightbox {
+    padding: 0;
+  }
+
+  .artopia-gallery-lightbox-dialog {
+    width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+  }
+
+  .artopia-gallery-lightbox-content {
+    grid-template-columns: 1fr;
+  }
+
+  .artopia-gallery-lightbox-image-wrap {
+    min-height: 45vh;
+    padding: 1rem;
+  }
+
+  .artopia-gallery-lightbox-details {
+    padding: 4rem 1.25rem 1.5rem;
+  }
+
+  .artopia-gallery-lightbox-title {
+    font-size: 1.6rem;
+  }
+
+  .artopia-gallery-lightbox-prev {
+    left: 0.75rem;
+  }
+
+  .artopia-gallery-lightbox-next {
+    right: 0.75rem;
+  }
+
+  .artopia-gallery-lightbox-nav {
+    top: 22vh;
+  }
+}
+
 /* ARTIST ARCHIVE */
 .artopia-artist-archive {
   max-width: 1400px;
@@ -417,45 +459,141 @@ body {
 }
 
 
+/* SINGLE ARTWORK */
+.artopia-single-artwork {
+  max-width: 1400px;
+  margin: 4rem auto;
+  padding: 0 1.5rem;
+}
 
-/* MOBILE */
+.artopia-single-artwork__inner {
+  width: 100%;
+}
+
+.artopia-single-artwork__article {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 420px);
+  gap: 3rem;
+  align-items: start;
+}
+
+.artopia-single-artwork__media {
+  background: #f4f4f4;
+  overflow: hidden;
+}
+
+.artopia-single-artwork__image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.artopia-single-artwork__header {
+  margin-bottom: 1.5rem;
+}
+
+.artopia-single-artwork__title {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 4rem);
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+}
+
+.artopia-single-artwork__artist {
+  margin-top: 0.9rem;
+  font-size: 1.1rem;
+}
+
+.artopia-single-artwork__artist a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.artopia-single-artwork__status {
+  display: inline-flex;
+  margin-top: 1rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: #f2eee8;
+  color: #3a2416;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.artopia-single-artwork__meta {
+  margin: 0;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.artopia-single-artwork__meta-row {
+  display: grid;
+  grid-template-columns: 6.5rem 1fr;
+  gap: 1rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.artopia-single-artwork__meta dt {
+  color: #777;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.artopia-single-artwork__meta dd {
+  margin: 0;
+  color: #222;
+  line-height: 1.45;
+}
+
+.artopia-single-artwork__content {
+  margin-top: 1.75rem;
+  color: #333;
+  line-height: 1.7;
+}
+
+.artopia-single-artwork__galleries {
+  margin-top: 2rem;
+}
+
+.artopia-single-artwork__galleries-title {
+  margin: 0 0 0.75rem;
+  font-size: 0.8rem;
+  color: #777;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.artopia-single-artwork__gallery-list {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.artopia-single-artwork__gallery-list li + li {
+  margin-top: 0.4rem;
+}
+
+.artopia-single-artwork__empty {
+  color: #666;
+  font-size: 1rem;
+}
+
 @media (max-width: 900px) {
-  .artopia-gallery-lightbox {
-    padding: 0;
-  }
-
-  .artopia-gallery-lightbox-dialog {
-    width: 100vw;
-    height: 100vh;
-    max-height: 100vh;
-  }
-
-  .artopia-gallery-lightbox-content {
+  .artopia-single-artwork__article {
     grid-template-columns: 1fr;
+    gap: 2rem;
   }
 
-  .artopia-gallery-lightbox-image-wrap {
-    min-height: 45vh;
-    padding: 1rem;
+  .artopia-single-artwork__title {
+    font-size: 2.2rem;
   }
 
-  .artopia-gallery-lightbox-details {
-    padding: 4rem 1.25rem 1.5rem;
-  }
-
-  .artopia-gallery-lightbox-title {
-    font-size: 1.6rem;
-  }
-
-  .artopia-gallery-lightbox-prev {
-    left: 0.75rem;
-  }
-
-  .artopia-gallery-lightbox-next {
-    right: 0.75rem;
-  }
-
-  .artopia-gallery-lightbox-nav {
-    top: 22vh;
+  .artopia-single-artwork__meta-row {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
   }
 }

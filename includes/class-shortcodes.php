@@ -7,6 +7,13 @@ if (!defined('ABSPATH')) {
 }
 
 class Shortcodes {
+
+  public static function enqueue_public_assets(): void
+  {
+      wp_enqueue_style('artopia-gallery-public');
+      wp_enqueue_script('artopia-gallery-public');
+  }
+
   public function run(): void {
     add_shortcode('artopia-gallery', [$this, 'render_gallery_shortcode']);
     add_action('wp_enqueue_scripts', [$this, 'register_assets']);
@@ -20,7 +27,8 @@ class Shortcodes {
 
       if ($artist_id > 0) {
           $gallery_terms = new Gallery_Terms();
-          $term = $gallery_terms->find_by_artist_and_name_with_legacy_fallback($artist_id, $gallery_slug);
+          $term = $gallery_terms->find_by_artist_and_slug_with_legacy_fallback($artist_id, $gallery_slug);
+
 
           if ($term instanceof \WP_Term) {
               return $term;
@@ -129,8 +137,7 @@ class Shortcodes {
           '</div>';
     }
 
-    wp_enqueue_style('artopia-gallery-public');
-    wp_enqueue_script('artopia-gallery-public');
+    self::enqueue_public_assets();
 
     $gallery_title = '';
     $gallery_description = '';

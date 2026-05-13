@@ -19,6 +19,7 @@ class Post_Types {
         'singular_name' => __('Artist', 'artopia-gallery'),
       ],
       'public' => true,
+      'has_archive' => true,
       'show_ui' => true,
       'show_in_menu' => true,
       'show_in_rest' => true,

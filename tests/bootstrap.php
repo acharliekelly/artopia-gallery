@@ -25,6 +25,7 @@ if (!function_exists('sanitize_text_field')) {
     {
         $value = is_string($value) ? $value : (string) $value;
         $value = strip_tags($value);
+        /** @disregard unrecognized function preg_replace */
         $value = preg_replace('/[\r\n\t ]+/', ' ', $value);
 
         return trim((string) $value);
@@ -36,7 +37,9 @@ if (!function_exists('sanitize_file_name')) {
     {
         $filename = is_string($filename) ? $filename : (string) $filename;
         $filename = trim($filename);
+        /** @disregard unrecognized function preg_replace */
         $filename = preg_replace('/[^A-Za-z0-9._-]+/', '-', $filename);
+        /** @disregard unrecognized function preg_replace */
         $filename = preg_replace('/-+/', '-', $filename);
 
         return trim((string) $filename, '-');
@@ -47,6 +50,7 @@ if (!function_exists('wp_kses_post')) {
     function wp_kses_post($content): string
     {
         $content = is_string($content) ? $content : (string) $content;
+        /** @disregard unrecognized function preg_replace */
         $content = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $content);
 
         return strip_tags((string) $content, '<p><br><strong><em><a>');

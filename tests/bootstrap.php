@@ -9,6 +9,8 @@ if (!defined('ABSPATH')) {
 $GLOBALS['artopia_test_term_meta'] = [];
 $GLOBALS['artopia_test_terms'] = [];
 $GLOBALS['artopia_test_next_term_id'] = 1000;
+$GLOBALS['artopia_test_term_descriptions'] = [];
+
 
 
 if (!function_exists('__')) {
@@ -184,6 +186,59 @@ if (!function_exists('get_terms')) {
     }
 }
 
+if (!function_exists('get_term_by')) {
+    function get_term_by($field, $value, $taxonomy)
+    {
+        if ($taxonomy !== 'gallery') {
+            return false;
+        }
+
+        $terms = $GLOBALS['artopia_test_terms'] ?? [];
+
+        foreach ($terms as $term) {
+            if (!$term instanceof \WP_Term) {
+                continue;
+            }
+
+            if ($field === 'slug' && $term->slug === (string) $value) {
+                return $term;
+            }
+
+            if ($field === 'name' && $term->name === (string) $value) {
+                return $term;
+            }
+
+            if ($field === 'id' && $term->term_id === (int) $value) {
+                return $term;
+            }
+        }
+
+        return false;
+    }
+}
+
+if (!function_exists('term_description')) {
+    function term_description($term_id, $taxonomy = ''): string
+    {
+        if ($taxonomy !== '' && $taxonomy !== 'gallery') {
+            return '';
+        }
+
+        $store = $GLOBALS['artopia_test_term_descriptions'] ?? [];
+
+        return isset($store[$term_id]) ? (string) $store[$term_id] : '';
+    }
+}
+
+if (!function_exists('shortcode_atts')) {
+    function shortcode_atts(array $pairs, array $atts, $shortcode = ''): array
+    {
+        return array_merge($pairs, $atts);
+    }
+}
+
+
+
 if (!function_exists('wp_insert_term')) {
     function wp_insert_term($term, $taxonomy)
     {
@@ -222,12 +277,10 @@ if (!function_exists('artopia_reset_test_term_store')) {
     {
         $GLOBALS['artopia_test_term_meta'] = [];
         $GLOBALS['artopia_test_terms'] = [];
+        $GLOBALS['artopia_test_term_descriptions'] = [];
         $GLOBALS['artopia_test_next_term_id'] = 1000;
     }
 }
-
-
-
 
 
 
@@ -235,3 +288,4 @@ require_once dirname(__DIR__) . '/includes/class-helpers.php';
 require_once dirname(__DIR__) . '/includes/class-artwork-data.php';
 require_once dirname(__DIR__) . '/includes/class-importer.php';
 require_once dirname(__DIR__) . '/includes/class-gallery-terms.php';
+require_once dirname(__DIR__) . '/includes/class-shortcodes.php';

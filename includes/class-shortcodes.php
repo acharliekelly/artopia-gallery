@@ -12,6 +12,59 @@ class Shortcodes {
     add_action('wp_enqueue_scripts', [$this, 'register_assets']);
   }
 
+  protected function resolve_gallery_term(string $gallery_slug, int $artist_id): ?\WP_Term
+  {
+      if ($gallery_slug === '') {
+          return null;
+      }
+
+      if ($artist_id > 0) {
+          $gallery_terms = new Gallery_Terms();
+          $term = $gallery_terms->find_by_artist_and_slug($artist_id, $gallery_slug);
+
+          if ($term instanceof \WP_Term) {
+              return $term;
+          }
+      }
+
+      $term = get_term_by('slug', $gallery_slug, 'gallery');
+
+      if ($term instanceof \WP_Term && !is_wp_error($term)) {
+          return $term;
+      }
+
+      return null;
+  }
+
+  protected function build_gallery_tax_query(string $gallery_slug, int $artist_id): array
+  {
+      if ($gallery_slug === '') {
+          return [];
+      }
+
+      $term = $this->resolve_gallery_term($gallery_slug, $artist_id);
+
+      if ($term instanceof \WP_Term) {
+          return [
+              [
+                  'taxonomy' => 'gallery',
+                  'field' => 'term_id',
+                  'terms' => [(int) $term->term_id],
+              ],
+          ];
+      }
+
+      return [
+          [
+              'taxonomy' => 'gallery',
+              'field' => 'slug',
+              'terms' => [$gallery_slug],
+          ],
+      ];
+  }
+
+
+
   public function register_assets(): void {
     wp_register_style(
       'artopia-gallery-public',
@@ -40,14 +93,8 @@ class Shortcodes {
     $artist_id = absint($atts['artist_id']);
     $limit = (int) $atts['limit'];
 
-    $tax_query = [];
-    if ($gallery_slug !== '') {
-      $tax_query = [
-        'taxonomy' => 'gallery',
-        'field'    => 'slug',
-        'terms'    => $gallery_slug,
-      ];
-    }
+    $resolved_gallery_term = $this->resolve_gallery_term($gallery_slug, $artist_id);
+    $tax_query = $this->build_gallery_tax_query($gallery_slug, $artist_id);
 
     $meta_query = [];
     if ($artist_id > 0) {
@@ -87,7 +134,12 @@ class Shortcodes {
 
     $gallery_title = '';
     $gallery_description = '';
-    $gallery_term = null;
+    $gallery_term = $resolved_gallery_term;
+
+    if ($gallery_term instanceof \WP_Term) {
+      $gallery_title = $gallery_term->name;
+      $gallery_description = term_description((int) $gallery_term->term_id, 'gallery');
+    }
 
     if ($gallery_slug !== '') {
       $term = get_term_by('slug', $gallery_slug, 'gallery');

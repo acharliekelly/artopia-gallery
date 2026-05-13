@@ -316,7 +316,7 @@ class Importer
 
     private function create_artwork_post(array $data)
     {
-        // Draft | Publish
+        // Imports currently create published artwork posts for faster manual testing.
         return wp_insert_post([
             'post_type' => 'artwork',
             'post_status' => 'publish',

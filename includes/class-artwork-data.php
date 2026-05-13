@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * This is the cannonical normalization layer for artwork payloads
+ * This is the canonical normalization layer for artwork payloads.
  */
 class Artwork_Data
 {

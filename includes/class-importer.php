@@ -328,11 +328,11 @@ class Importer
 
     private function import_rows(array &$result): void
     {
-        $gallery = term_exists($result['gallery_name'], 'gallery');
-
-        if ($gallery === 0 || $gallery === null) {
-            $gallery = wp_insert_term($result['gallery_name'], 'gallery');
-        }
+        $gallery_terms = new Gallery_Terms();
+        $gallery = $gallery_terms->get_or_create_for_artist(
+            (int) $result['artist_id'],
+            (string) $result['gallery_name']
+        );
 
         if (is_wp_error($gallery)) {
             $result['errors'][] = sprintf(
@@ -342,8 +342,9 @@ class Importer
             return;
         }
 
-        $gallery_term_id = is_array($gallery) ? (int) $gallery['term_id'] : (int) $gallery;
+        $gallery_term_id = (int) $gallery;
         $result['import_summary']['gallery_term_id'] = $gallery_term_id;
+
 
         $artist_id = (int) $result['artist_id'];
 

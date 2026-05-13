@@ -6,6 +6,11 @@ if (!defined('ABSPATH')) {
     define('ABSPATH', __DIR__ . '/');
 }
 
+$GLOBALS['artopia_test_term_meta'] = [];
+$GLOBALS['artopia_test_terms'] = [];
+$GLOBALS['artopia_test_next_term_id'] = 1000;
+
+
 if (!function_exists('__')) {
     function __($text, $domain = null)
     {
@@ -73,6 +78,21 @@ if (!function_exists('get_term_meta')) {
     }
 }
 
+if (!function_exists('update_term_meta')) {
+    function update_term_meta($term_id, $key, $value): bool
+    {
+        if (!isset($GLOBALS['artopia_test_term_meta'][$term_id])) {
+            $GLOBALS['artopia_test_term_meta'][$term_id] = [];
+        }
+
+        $GLOBALS['artopia_test_term_meta'][$term_id][$key] = $value;
+
+        return true;
+    }
+}
+
+
+
 if (!function_exists('sanitize_title')) {
     function sanitize_title($title): string
     {
@@ -100,6 +120,113 @@ if (!class_exists('WP_Term')) {
         }
     }
 }
+
+
+if (!class_exists('WP_Error')) {
+    class WP_Error
+    {
+        private string $code;
+        private string $message;
+
+        public function __construct(string $code = '', string $message = '')
+        {
+            $this->code = $code;
+            $this->message = $message;
+        }
+
+        public function get_error_code(): string
+        {
+            return $this->code;
+        }
+
+        public function get_error_message(): string
+        {
+            return $this->message;
+        }
+    }
+}
+
+if (!function_exists('is_wp_error')) {
+    function is_wp_error($thing): bool
+    {
+        return $thing instanceof \WP_Error;
+    }
+}
+
+if (!function_exists('get_terms')) {
+    function get_terms(array $args = [])
+    {
+        $terms = $GLOBALS['artopia_test_terms'] ?? [];
+
+        if (isset($args['taxonomy']) && $args['taxonomy'] !== 'gallery') {
+            return [];
+        }
+
+        $filtered = [];
+
+        foreach ($terms as $term) {
+            if (!$term instanceof \WP_Term) {
+                continue;
+            }
+
+            if (isset($args['name']) && (string) $args['name'] !== '' && $term->name !== (string) $args['name']) {
+                continue;
+            }
+
+            if (isset($args['slug']) && (string) $args['slug'] !== '' && $term->slug !== (string) $args['slug']) {
+                continue;
+            }
+
+            $filtered[] = $term;
+        }
+
+        return array_values($filtered);
+    }
+}
+
+if (!function_exists('wp_insert_term')) {
+    function wp_insert_term($term, $taxonomy)
+    {
+        if ($taxonomy !== 'gallery') {
+            return new \WP_Error('invalid_taxonomy', 'Invalid taxonomy.');
+        }
+
+        $name = is_string($term) ? trim($term) : (string) $term;
+
+        if ($name === '') {
+            return new \WP_Error('empty_term_name', 'Term name is required.');
+        }
+
+        $term_id = (int) ($GLOBALS['artopia_test_next_term_id'] ?? 1000);
+        $GLOBALS['artopia_test_next_term_id'] = $term_id + 1;
+
+        $slug = sanitize_title($name);
+
+        $wpTerm = new \WP_Term((object) [
+            'term_id' => $term_id,
+            'name' => $name,
+            'slug' => $slug,
+        ]);
+
+        $GLOBALS['artopia_test_terms'][] = $wpTerm;
+
+        return [
+            'term_id' => $term_id,
+            'term_taxonomy_id' => $term_id,
+        ];
+    }
+}
+
+if (!function_exists('artopia_reset_test_term_store')) {
+    function artopia_reset_test_term_store(): void
+    {
+        $GLOBALS['artopia_test_term_meta'] = [];
+        $GLOBALS['artopia_test_terms'] = [];
+        $GLOBALS['artopia_test_next_term_id'] = 1000;
+    }
+}
+
+
 
 
 

@@ -15,7 +15,14 @@ final class GalleryTermsTest extends TestCase
     protected function setUp(): void
     {
         $this->galleryTerms = new Gallery_Terms();
+        $this->resetTermStore();
+    }
+
+    private function resetTermStore(): void
+    {
         $GLOBALS['artopia_test_term_meta'] = [];
+        $GLOBALS['artopia_test_terms'] = [];
+        $GLOBALS['artopia_test_next_term_id'] = 1000;
     }
 
     private function makeTerm(int $termId, string $name, string $slug): WP_Term
@@ -27,6 +34,33 @@ final class GalleryTermsTest extends TestCase
         ]);
     }
 
+    private function setTermMeta(int $termId, string $key, $value): void
+    {
+        $GLOBALS['artopia_test_term_meta'][$termId][$key] = $value;
+    }
+
+    /**
+     * @param array<int, WP_Term> $terms
+     */
+    private function setTerms(array $terms): void
+    {
+        $GLOBALS['artopia_test_terms'] = $terms;
+    }
+
+    private function getTermMetaStore(): array
+    {
+        /** @disregard */
+        return $GLOBALS['artopia_test_term_meta'];
+    }
+
+    /**
+     * @return array<int, WP_Term>
+     */
+    private function getTermsStore(): array
+    {
+        /** @disregard */
+        return $GLOBALS['artopia_test_terms'];
+    }
 
     public function testArtistMetaKeyReturnsExpectedConstant(): void
     {
@@ -35,7 +69,7 @@ final class GalleryTermsTest extends TestCase
 
     public function testGetArtistIdForTermReturnsNormalizedValue(): void
     {
-        $GLOBALS['artopia_test_term_meta'][15][Gallery_Terms::artist_meta_key()] = '12';
+        $this->setTermMeta(15, Gallery_Terms::artist_meta_key(), '12');
 
         self::assertSame(12, $this->galleryTerms->get_artist_id_for_term(15));
     }
@@ -47,14 +81,14 @@ final class GalleryTermsTest extends TestCase
 
     public function testTermBelongsToArtistReturnsTrueForMatchingOwner(): void
     {
-        $GLOBALS['artopia_test_term_meta'][20][Gallery_Terms::artist_meta_key()] = '8';
+        $this->setTermMeta(20, Gallery_Terms::artist_meta_key(), '8');
 
         self::assertTrue($this->galleryTerms->term_belongs_to_artist(20, 8));
     }
 
     public function testTermBelongsToArtistReturnsFalseForDifferentOwner(): void
     {
-        $GLOBALS['artopia_test_term_meta'][20][Gallery_Terms::artist_meta_key()] = '8';
+        $this->setTermMeta(20, Gallery_Terms::artist_meta_key(), '8');
 
         self::assertFalse($this->galleryTerms->term_belongs_to_artist(20, 9));
     }
@@ -67,7 +101,7 @@ final class GalleryTermsTest extends TestCase
     public function testTermMatchesArtistAndNameRequiresMatchingOwnerAndName(): void
     {
         $term = $this->makeTerm(31, 'Landscapes', 'landscapes');
-        $GLOBALS['artopia_test_term_meta'][31][Gallery_Terms::artist_meta_key()] = '12';
+        $this->setTermMeta(31, Gallery_Terms::artist_meta_key(), '12');
 
         self::assertTrue(
             $this->galleryTerms->term_matches_artist_and_name($term, 12, ' landscapes ')
@@ -77,8 +111,7 @@ final class GalleryTermsTest extends TestCase
     public function testTermMatchesArtistAndNameReturnsFalseForDifferentArtist(): void
     {
         $term = $this->makeTerm(31, 'Landscapes', 'landscapes');
-        
-        $GLOBALS['artopia_test_term_meta'][31][Gallery_Terms::artist_meta_key()] = '12';
+        $this->setTermMeta(31, Gallery_Terms::artist_meta_key(), '12');
 
         self::assertFalse(
             $this->galleryTerms->term_matches_artist_and_name($term, 99, 'Landscapes')
@@ -88,8 +121,7 @@ final class GalleryTermsTest extends TestCase
     public function testTermMatchesArtistAndNameReturnsFalseForDifferentName(): void
     {
         $term = $this->makeTerm(31, 'Landscapes', 'landscapes');
-
-        $GLOBALS['artopia_test_term_meta'][31][Gallery_Terms::artist_meta_key()] = '12';
+        $this->setTermMeta(31, Gallery_Terms::artist_meta_key(), '12');
 
         self::assertFalse(
             $this->galleryTerms->term_matches_artist_and_name($term, 12, 'Portraits')
@@ -99,8 +131,7 @@ final class GalleryTermsTest extends TestCase
     public function testTermMatchesArtistAndSlugRequiresMatchingOwnerAndSlug(): void
     {
         $term = $this->makeTerm(44, 'Blue Hill', 'blue-hill');
-
-        $GLOBALS['artopia_test_term_meta'][44][Gallery_Terms::artist_meta_key()] = '7';
+        $this->setTermMeta(44, Gallery_Terms::artist_meta_key(), '7');
 
         self::assertTrue(
             $this->galleryTerms->term_matches_artist_and_slug($term, 7, 'Blue Hill')
@@ -110,8 +141,7 @@ final class GalleryTermsTest extends TestCase
     public function testTermMatchesArtistAndSlugReturnsFalseForDifferentArtist(): void
     {
         $term = $this->makeTerm(44, 'Blue Hill', 'blue-hill');
-
-        $GLOBALS['artopia_test_term_meta'][44][Gallery_Terms::artist_meta_key()] = '7';
+        $this->setTermMeta(44, Gallery_Terms::artist_meta_key(), '7');
 
         self::assertFalse(
             $this->galleryTerms->term_matches_artist_and_slug($term, 99, 'Blue Hill')
@@ -121,11 +151,94 @@ final class GalleryTermsTest extends TestCase
     public function testTermMatchesArtistAndSlugReturnsFalseForDifferentSlug(): void
     {
         $term = $this->makeTerm(44, 'Blue Hill', 'blue-hill');
-
-        $GLOBALS['artopia_test_term_meta'][44][Gallery_Terms::artist_meta_key()] = '7';
+        $this->setTermMeta(44, Gallery_Terms::artist_meta_key(), '7');
 
         self::assertFalse(
             $this->galleryTerms->term_matches_artist_and_slug($term, 7, 'Maine Woods')
         );
+    }
+
+    public function testFindByArtistAndNameReturnsMatchingOwnedTerm(): void
+    {
+        $owned = $this->makeTerm(51, 'Landscapes', 'landscapes');
+        $other = $this->makeTerm(52, 'Landscapes', 'landscapes-2');
+
+        $this->setTerms([$owned, $other]);
+        $this->setTermMeta(51, Gallery_Terms::artist_meta_key(), 12);
+        $this->setTermMeta(52, Gallery_Terms::artist_meta_key(), 99);
+
+        $found = $this->galleryTerms->find_by_artist_and_name(12, 'Landscapes');
+
+        self::assertInstanceOf(WP_Term::class, $found);
+        self::assertSame(51, $found->term_id);
+    }
+
+    public function testFindByArtistAndNameReturnsNullWhenOnlyDifferentArtistMatches(): void
+    {
+        $other = $this->makeTerm(52, 'Landscapes', 'landscapes-2');
+
+        $this->setTerms([$other]);
+        $this->setTermMeta(52, Gallery_Terms::artist_meta_key(), 99);
+
+        self::assertNull($this->galleryTerms->find_by_artist_and_name(12, 'Landscapes'));
+    }
+
+    public function testFindByArtistAndSlugReturnsMatchingOwnedTerm(): void
+    {
+        $owned = $this->makeTerm(61, 'Blue Hill', 'blue-hill');
+        $other = $this->makeTerm(62, 'Blue Hill', 'blue-hill-2');
+
+        $this->setTerms([$owned, $other]);
+        $this->setTermMeta(61, Gallery_Terms::artist_meta_key(), 7);
+        $this->setTermMeta(62, Gallery_Terms::artist_meta_key(), 99);
+
+        $found = $this->galleryTerms->find_by_artist_and_slug(7, 'Blue Hill');
+
+        self::assertInstanceOf(WP_Term::class, $found);
+        self::assertSame(61, $found->term_id);
+    }
+
+    public function testGetOrCreateForArtistReturnsExistingOwnedTermId(): void
+    {
+        $owned = $this->makeTerm(71, 'Landscapes', 'landscapes');
+
+        $this->setTerms([$owned]);
+        $this->setTermMeta(71, Gallery_Terms::artist_meta_key(), 12);
+
+        $termId = $this->galleryTerms->get_or_create_for_artist(12, 'Landscapes');
+
+        self::assertSame(71, $termId);
+        self::assertCount(1, $this->getTermsStore());
+    }
+
+    public function testGetOrCreateForArtistCreatesNewOwnedTermWhenMissing(): void
+    {
+        $termId = $this->galleryTerms->get_or_create_for_artist(12, 'Landscapes');
+
+        self::assertSame(1000, $termId);
+        self::assertCount(1, $this->getTermsStore());
+
+        $termMeta = $this->getTermMetaStore();
+        $terms = $this->getTermsStore();
+
+        self::assertSame(12, $termMeta[1000][Gallery_Terms::artist_meta_key()]);
+        self::assertSame('Landscapes', $terms[0]->name);
+        self::assertSame('landscapes', $terms[0]->slug);
+    }
+
+    public function testGetOrCreateForArtistReturnsErrorForInvalidArtist(): void
+    {
+        $result = $this->galleryTerms->get_or_create_for_artist(0, 'Landscapes');
+
+        self::assertInstanceOf(\WP_Error::class, $result);
+        self::assertSame('artopia_invalid_artist', $result->get_error_code());
+    }
+
+    public function testGetOrCreateForArtistReturnsErrorForEmptyGalleryName(): void
+    {
+        $result = $this->galleryTerms->get_or_create_for_artist(12, '   ');
+
+        self::assertInstanceOf(\WP_Error::class, $result);
+        self::assertSame('artopia_invalid_gallery_name', $result->get_error_code());
     }
 }

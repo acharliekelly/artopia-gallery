@@ -6,6 +6,10 @@
         "php-stubs/wordpress-stubs": "^6.9",
         "phpunit/phpunit": "^10.5"
     },
+    "scripts": {
+        "test": "phpunit --configuration phpunit.xml.dist",
+        "lint": "find . -name \"*.php\" -not -path \"./vendor/*\" -print0 | xargs -0 -n1 php -l"
+    },
     "config": {
         "sort-packages": true
     }

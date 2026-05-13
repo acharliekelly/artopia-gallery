@@ -8,6 +8,9 @@ if (!defined('ABSPATH')) {
 
 class Shortcodes {
 
+  /**
+   * Enqueue shared public assets for gallery and template rendering.
+   */
   public static function enqueue_public_assets(): void
   {
       wp_enqueue_style('artopia-gallery-public');
@@ -71,8 +74,6 @@ class Shortcodes {
       ];
   }
 
-
-
   public function register_assets(): void {
     wp_register_style(
       'artopia-gallery-public',
@@ -94,6 +95,10 @@ class Shortcodes {
     return $this->render_gallery($atts);
   }
 
+  /**
+   * Render the shared public gallery view used by shortcode output
+   * and gallery taxonomy templates.
+   */
   public function render_gallery(array $atts = []): string {
     $atts = shortcode_atts([
       'gallery' => '',
@@ -153,12 +158,6 @@ class Shortcodes {
     }
 
     $gallery_term = $resolved_gallery_term;
-
-    if ($gallery_term instanceof \WP_Term) {
-      $gallery_title = $gallery_term->name;
-      $gallery_description = term_description((int) $gallery_term->term_id, 'gallery');
-    }
-
 
     $artist_name = '';
     if ($artist_id > 0) {
@@ -241,7 +240,8 @@ class Shortcodes {
                   'class' => 'artopia-gallery-image',
                   'loading' => 'lazy',
                 ])
-                : '<div class="artopia-gallery-placeholder">' . esc_html('No image') . '</div>';
+                : '<div class="artopia-gallery-placeholder">' . esc_html__('No image', 'artopia-gallery')
+ . '</div>';
             
             $lightbox_url = '';
 

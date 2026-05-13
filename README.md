@@ -77,3 +77,13 @@ Examples:
 filename,title,medium,year,dimensions,price,status
 marsh-sunset.jpg,Marsh Sunset,Oil on Canvas,2024,24x36,1800,available
 cat-study.jpg,Cat Study,Pastel,2025,12x16,450,sold
+```
+
+## Development
+
+Install dev dependencies from the plugin directory:
+
+```bash
+cd wp-content/plugins/artopia-gallery
+composer install
+```

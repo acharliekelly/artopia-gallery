@@ -14,6 +14,7 @@ class Plugin {
         (new Meta_Boxes())->run();
         (new Admin())->run();
         (new Shortcodes())->run();
+        (new Templates())->run();
     }
 
     public function register_content_types(): void {

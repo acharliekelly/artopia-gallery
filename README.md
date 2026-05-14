@@ -34,6 +34,7 @@ Admin import workflow includes:
 
 - Select Artist
 - Enter Gallery Name
+- Choose whether imported artworks are created as published posts or drafts
 - Upload CSV file
 - Validate before import
 - Header normalization / alias handling
@@ -66,9 +67,11 @@ The plugin now manages its own public templates for:
 
 Template routing is handled inside the plugin, and gallery taxonomy pages reuse the same shared gallery rendering path used by the shortcode. The shortcode remains available and is still the preferred portable way to embed gallery output inside other content.
 
-Future enhancement:
+## Admin Tools
 
-- Make import status selectable on the import page, such as publish vs draft
+- Dashboard summary for artists, artworks, gallery ownership health, and draft content
+- CSV import workflow with validate/import steps and publish/draft mode
+- Gallery ownership review, manual owner assignment, and safe backfill for unowned legacy galleries
 
 ### Supported CSV Columns
 

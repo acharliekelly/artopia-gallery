@@ -52,10 +52,13 @@ class Admin
       wp_die(esc_html__('You do not have permission to access this page.', 'artopia-gallery'));
     }
 
-    echo '<div class="wrap">';
-    echo '<h1>' . esc_html__('Artopia Gallery', 'artopia-gallery') . '</h1>';
-    echo '<p>' . esc_html__('Welcome. The gallery engine is warming up nicely.', 'artopia-gallery') . '</p>';
-    echo '</div>';
+    $stats = $this->get_dashboard_stats();
+    $links = [
+      'import' => admin_url('admin.php?page=artopia-gallery-import'),
+      'ownership' => admin_url('admin.php?page=artopia-gallery-ownership'),
+    ];
+
+    require ARTOPIA_GALLERY_PLUGIN_PATH . 'admin/views/dashboard-page.php';
   }
 
   public function render_import_page(): void 
@@ -172,8 +175,32 @@ class Admin
 
           return $feedback;
         }
-        
+
       return $feedback;
+  }
+
+  private function get_dashboard_stats(): array
+  {
+      $gallery_terms = new Gallery_Terms();
+      $report = $gallery_terms->get_gallery_ownership_report();
+      $artist_counts = wp_count_posts('artist');
+      $artwork_counts = wp_count_posts('artwork');
+
+      return [
+          'artists' => (int) ($artist_counts->publish ?? 0)
+              + (int) ($artist_counts->draft ?? 0)
+              + (int) ($artist_counts->pending ?? 0)
+              + (int) ($artist_counts->private ?? 0),
+          'artworks' => (int) ($artwork_counts->publish ?? 0)
+              + (int) ($artwork_counts->draft ?? 0)
+              + (int) ($artwork_counts->pending ?? 0)
+              + (int) ($artwork_counts->private ?? 0),
+          'artworks_published' => (int) ($artwork_counts->publish ?? 0),
+          'artworks_draft' => (int) ($artwork_counts->draft ?? 0),
+          'gallery_terms_total' => (int) ($report['summary']['total'] ?? 0),
+          'gallery_terms_owned' => (int) ($report['summary']['owned'] ?? 0),
+          'gallery_terms_unowned' => (int) ($report['summary']['unowned'] ?? 0),
+      ];
   }
 
 }

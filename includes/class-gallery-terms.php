@@ -259,8 +259,62 @@ class Gallery_Terms
         return $this->find_legacy_unowned_by_slug($gallery_slug);
     }
 
+    public function get_gallery_ownership_report(): array
+    {
+        $report = [
+            'summary' => [
+                'total' => 0,
+                'owned' => 0,
+                'unowned' => 0,
+            ],
+            'rows' => [],
+        ];
 
+        $terms = get_terms([
+            'taxonomy' => 'gallery',
+            'hide_empty' => false,
+        ]);
 
+        if (is_wp_error($terms) || !is_array($terms)) {
+            return $report;
+        }
 
+        foreach ($terms as $term) {
+            if (!$term instanceof \WP_Term) {
+                continue;
+            }
+
+            $artist_id = $this->get_artist_id_for_term((int) $term->term_id);
+            $artist_name = '';
+            $is_owned = $artist_id > 0;
+
+            if ($is_owned) {
+                $artist = get_post($artist_id);
+
+                if ($artist && $artist->post_type === 'artist') {
+                    $artist_name = (string) $artist->post_title;
+                }
+            }
+
+            $report['rows'][] = [
+                'term_id' => (int) $term->term_id,
+                'name' => (string) $term->name,
+                'slug' => (string) $term->slug,
+                'artist_id' => $artist_id,
+                'artist_name' => $artist_name,
+                'is_owned' => $is_owned,
+            ];
+
+            $report['summary']['total']++;
+
+            if ($is_owned) {
+                $report['summary']['owned']++;
+            } else {
+                $report['summary']['unowned']++;
+            }
+        }
+
+        return $report;
+    }
 
 }

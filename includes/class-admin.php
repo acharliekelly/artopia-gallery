@@ -6,13 +6,16 @@ if (!defined('ABSPATH')) {
   exit;
 }
 
-class Admin {
+class Admin 
+{
   
-public function run(): void {
-    add_action('admin_menu', [$this, 'register_admin_menu']);
+  public function run(): void 
+  {
+      add_action('admin_menu', [$this, 'register_admin_menu']);
   }
 
-  public function register_admin_menu(): void {
+  public function register_admin_menu(): void 
+  {
     add_menu_page(
       __('Artopia Gallery', 'artopia-gallery'),
       __('Artopia Gallery', 'artopia-gallery'),
@@ -31,9 +34,20 @@ public function run(): void {
       'artopia-gallery-import',
       [$this, 'render_import_page']
     );
+
+    add_submenu_page(
+      'artopia-gallery',
+      __('Gallery Ownership', 'artopia-gallery'),
+      __('Gallery Ownership', 'artopia-gallery'),
+      'edit_posts',
+      'artopia-gallery-ownership',
+      [$this, 'render_gallery_ownership_page']
+    );
+
   }
 
-  public function render_dashboard_page(): void {
+  public function render_dashboard_page(): void 
+  {
     if (!current_user_can('edit_posts')) {
       wp_die(esc_html__('You do not have permission to access this page.', 'artopia-gallery'));
     }
@@ -44,7 +58,8 @@ public function run(): void {
     echo '</div>';
   }
 
-  public function render_import_page(): void {
+  public function render_import_page(): void 
+  {
     if (!current_user_can('edit_posts')) {
       wp_die(esc_html__('You do not have permission to access this page.', 'artopia-gallery'));
     }
@@ -58,4 +73,17 @@ public function run(): void {
       include $view_path;
     }
   }
+
+  public function render_gallery_ownership_page(): void
+  {
+      if (!current_user_can('edit_posts')) {
+          wp_die(esc_html__('You do not have permission to view this page.', 'artopia-gallery'));
+      }
+
+      $gallery_terms = new Gallery_Terms();
+      $report = $gallery_terms->get_gallery_ownership_report();
+
+      require ARTOPIA_GALLERY_PLUGIN_PATH . 'admin/views/gallery-ownership-page.php';
+  }
+
 }

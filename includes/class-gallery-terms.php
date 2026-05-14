@@ -317,4 +317,63 @@ class Gallery_Terms
         return $report;
     }
 
+    /**
+     * @return true|\WP_Error
+     */
+    public function assign_artist_to_term(int $term_id, int $artist_id)
+    {
+        $term_id = absint($term_id);
+        $artist_id = absint($artist_id);
+
+        if ($term_id <= 0) {
+            return new \WP_Error(
+                'artopia_invalid_term',
+                __('A valid gallery term is required.', 'artopia-gallery')
+            );
+        }
+
+        if ($artist_id <= 0) {
+            return new \WP_Error(
+                'artopia_invalid_artist',
+                __('A valid artist is required.', 'artopia-gallery')
+            );
+        }
+
+        $term = get_term($term_id, 'gallery');
+
+        if (!$term || is_wp_error($term) || !($term instanceof \WP_Term)) {
+            return new \WP_Error(
+                'artopia_term_not_found',
+                __('Gallery term not found.', 'artopia-gallery')
+            );
+        }
+
+        if ($term->taxonomy !== 'gallery') {
+            return new \WP_Error(
+                'artopia_invalid_taxonomy',
+                __('Selected term is not a gallery term.', 'artopia-gallery')
+            );
+        }
+
+        if (!$this->term_is_unowned($term_id)) {
+            return new \WP_Error(
+                'artopia_term_already_owned',
+                __('This gallery term already has an assigned artist owner.', 'artopia-gallery')
+            );
+        }
+
+        $artist = get_post($artist_id);
+
+        if (!$artist || $artist->post_type !== 'artist') {
+            return new \WP_Error(
+                'artopia_artist_not_found',
+                __('Artist not found.', 'artopia-gallery')
+            );
+        }
+
+        update_term_meta($term_id, self::ARTIST_META_KEY, $artist_id);
+
+        return true;
+    }
+
 }

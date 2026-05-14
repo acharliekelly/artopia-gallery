@@ -376,4 +376,145 @@ class Gallery_Terms
         return true;
     }
 
+    public function infer_artist_id_for_legacy_term(int $term_id): int
+    {
+        $term_id = absint($term_id);
+
+        if ($term_id <= 0 || !$this->term_is_unowned($term_id)) {
+            return 0;
+        }
+
+        $artworks = $this->get_artwork_ids_for_gallery_term($term_id);
+
+        if (!is_array($artworks) || empty($artworks)) {
+            return 0;
+        }
+
+        $artist_ids = [];
+
+        foreach ($artworks as $artwork_id) {
+            $artist_id = absint(get_post_meta((int) $artwork_id, '_artopia_artist_id', true));
+
+            if ($artist_id > 0) {
+                $artist_ids[$artist_id] = true;
+            }
+        }
+
+        $distinct_artist_ids = array_keys($artist_ids);
+
+        if (count($distinct_artist_ids) !== 1) {
+            return 0;
+        }
+
+        return (int) $distinct_artist_ids[0];
+    }
+
+    public function backfill_legacy_gallery_ownership(): array
+    {
+        $result = [
+            'updated' => 0,
+            'skipped' => 0,
+            'ambiguous' => 0,
+            'updated_terms' => [],
+            'skipped_terms' => [],
+            'ambiguous_terms' => [],
+        ];
+
+        $terms = get_terms([
+            'taxonomy' => 'gallery',
+            'hide_empty' => false,
+        ]);
+
+        if (is_wp_error($terms) || !is_array($terms)) {
+            return $result;
+        }
+
+        foreach ($terms as $term) {
+            if (!$term instanceof \WP_Term) {
+                continue;
+            }
+
+            $term_id = (int) $term->term_id;
+
+            if (!$this->term_is_unowned($term_id)) {
+                continue;
+            }
+
+            $artworks = $this->get_artwork_ids_for_gallery_term($term_id);
+
+            if (!is_array($artworks) || empty($artworks)) {
+                $result['skipped']++;
+                $result['skipped_terms'][] = [
+                    'term_id' => $term_id,
+                    'name' => (string) $term->name,
+                    'reason' => __('No artworks are attached to this gallery term.', 'artopia-gallery'),
+                ];
+                continue;
+            }
+
+            $artist_ids = [];
+
+            foreach ($artworks as $artwork_id) {
+                $artist_id = absint(get_post_meta((int) $artwork_id, '_artopia_artist_id', true));
+
+                if ($artist_id > 0) {
+                    $artist_ids[$artist_id] = true;
+                }
+            }
+
+            $distinct_artist_ids = array_keys($artist_ids);
+
+            if (count($distinct_artist_ids) === 1) {
+                $artist_id = (int) $distinct_artist_ids[0];
+                update_term_meta($term_id, self::ARTIST_META_KEY, $artist_id);
+
+                $result['updated']++;
+                $result['updated_terms'][] = [
+                    'term_id' => $term_id,
+                    'name' => (string) $term->name,
+                    'artist_id' => $artist_id,
+                ];
+                continue;
+            }
+
+            if (count($distinct_artist_ids) > 1) {
+                $result['ambiguous']++;
+                $result['ambiguous_terms'][] = [
+                    'term_id' => $term_id,
+                    'name' => (string) $term->name,
+                    'reason' => __('Attached artworks reference multiple artists.', 'artopia-gallery'),
+                ];
+                continue;
+            }
+
+            $result['skipped']++;
+            $result['skipped_terms'][] = [
+                'term_id' => $term_id,
+                'name' => (string) $term->name,
+                'reason' => __('Attached artworks do not provide a usable artist ID.', 'artopia-gallery'),
+            ];
+        }
+
+        return $result;
+    }
+
+    private function get_artwork_ids_for_gallery_term(int $term_id): array
+    {
+        $artworks = get_posts([
+            'post_type' => 'artwork',
+            'post_status' => 'any',
+            'posts_per_page' => -1,
+            'fields' => 'ids',
+            'tax_query' => [
+                [
+                    'taxonomy' => 'gallery',
+                    'field' => 'term_id',
+                    'terms' => [$term_id],
+                ],
+            ],
+        ]);
+
+        return is_array($artworks) ? $artworks : [];
+    }
+
 }

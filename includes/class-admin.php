@@ -114,7 +114,7 @@ class Admin
 
       $action = sanitize_text_field(wp_unslash($_POST['artopia_gallery_ownership_action']));
 
-      if ($action !== 'assign_owner') {
+      if (!in_array($action, ['assign_owner', 'backfill_owners'], true)) {
           return $feedback;
       }
 
@@ -123,29 +123,56 @@ class Admin
           return $feedback;
       }
 
-      if (
-          !isset($_POST['artopia_gallery_owner_nonce']) ||
-          !wp_verify_nonce(
-              sanitize_text_field(wp_unslash($_POST['artopia_gallery_owner_nonce'])),
-              'artopia_assign_gallery_owner'
-          )
-      ) {
-          $feedback['errors'][] = __('Security check failed. Please try again.', 'artopia-gallery');
-          return $feedback;
+      if ($action === 'assign_owner') {
+        if (
+            !isset($_POST['artopia_gallery_owner_nonce']) ||
+            !wp_verify_nonce(
+                sanitize_text_field(wp_unslash($_POST['artopia_gallery_owner_nonce'])),
+                'artopia_assign_gallery_owner'
+            )
+        ) {
+            $feedback['errors'][] = __('Security check failed. Please try again.', 'artopia-gallery');
+            return $feedback;
+        }
+
+        $term_id = isset($_POST['artopia_gallery_term_id']) ? absint(wp_unslash($_POST['artopia_gallery_term_id'])) : 0;
+        $artist_id = isset($_POST['artopia_gallery_artist_id']) ? absint(wp_unslash($_POST['artopia_gallery_artist_id'])) : 0;
+
+        $result = $gallery_terms->assign_artist_to_term($term_id, $artist_id);
+
+        if (is_wp_error($result)) {
+            $feedback['errors'][] = $result->get_error_message();
+            return $feedback;
+        }
+
+        $feedback['messages'][] = __('Gallery ownership updated.', 'artopia-gallery');
+        return $feedback;
       }
 
-      $term_id = isset($_POST['artopia_gallery_term_id']) ? absint(wp_unslash($_POST['artopia_gallery_term_id'])) : 0;
-      $artist_id = isset($_POST['artopia_gallery_artist_id']) ? absint(wp_unslash($_POST['artopia_gallery_artist_id'])) : 0;
+      if ($action === 'backfill_owners') {
+          if (
+              !isset($_POST['artopia_gallery_backfill_nonce']) ||
+              !wp_verify_nonce(
+                  sanitize_text_field(wp_unslash($_POST['artopia_gallery_backfill_nonce'])),
+                  'artopia_backfill_gallery_owners'
+              )
+          ) {
+              $feedback['errors'][] = __('Security check failed. Please try again.', 'artopia-gallery');
+              return $feedback;
+          }
 
-      $result = $gallery_terms->assign_artist_to_term($term_id, $artist_id);
+          $result = $gallery_terms->backfill_legacy_gallery_ownership();
 
-      if (is_wp_error($result)) {
-          $feedback['errors'][] = $result->get_error_message();
+          $feedback['messages'][] = sprintf(
+              __('Backfill complete. Updated %1$d gallery term(s), skipped %2$d, ambiguous %3$d.', 'artopia-gallery'),
+              (int) ($result['updated'] ?? 0),
+              (int) ($result['skipped'] ?? 0),
+              (int) ($result['ambiguous'] ?? 0)
+          );
+
           return $feedback;
-      }
-
-      $feedback['messages'][] = __('Gallery ownership updated.', 'artopia-gallery');
-
+        }
+        
       return $feedback;
   }
 

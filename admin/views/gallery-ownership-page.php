@@ -29,6 +29,20 @@ $errors = $errors ?? [];
         <?php esc_html_e('Review gallery terms and assign artist owners to legacy unowned galleries.', 'artopia-gallery'); ?>
     </p>
 
+    <form method="post" style="margin: 1rem 0 2rem;">
+        <?php wp_nonce_field('artopia_backfill_gallery_owners', 'artopia_gallery_backfill_nonce'); ?>
+        <input type="hidden" name="artopia_gallery_ownership_action" value="backfill_owners" />
+
+        <p class="description" style="max-width: 760px; margin-bottom: 0.75rem;">
+            <?php esc_html_e('Backfill ownership for legacy unowned gallery terms only when all attached artworks resolve to the same artist. Terms with no usable artist signal or multiple artists will be skipped.', 'artopia-gallery'); ?>
+        </p>
+
+        <button type="submit" class="button button-secondary">
+            <?php esc_html_e('Backfill Unowned Galleries', 'artopia-gallery'); ?>
+        </button>
+    </form>
+
+
     <?php if (!empty($errors)) : ?>
         <div class="notice notice-error">
             <ul>

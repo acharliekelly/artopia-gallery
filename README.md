@@ -132,3 +132,9 @@ Manual importer regression fixtures live in `fixtures/`:
 - `import_same_filename_diff_title.csv`: same filename, different title duplicate behavior
 
 CI runs PHPUnit and PHP syntax linting through GitHub Actions in `.github/workflows/phpunit.yml`.
+
+## Uninstall Policy
+
+Artopia Gallery currently uses a non-destructive uninstall policy.
+
+Uninstalling the plugin leaves existing artists, artworks, gallery terms, attachments, and related post/term meta in place. The plugin treats these records as site content and does not remove them automatically.
